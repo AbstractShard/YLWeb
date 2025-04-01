@@ -1,60 +1,87 @@
-import datetime
-import json
-import os
-from flask import Flask, url_for, request, render_template, redirect
+from flask import Flask, render_template, redirect
 from flask_wtf import FlaskForm
-from wtforms import FileField
-from wtforms import SubmitField
+from wtforms import StringField, PasswordField, SubmitField, EmailField
 from wtforms.validators import DataRequired
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, EmailField
-from wtforms.validators import DataRequired
-from wtforms import FileField
-
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
-is_logined = False
+authorized = False
+
+
+class RegisterForm(FlaskForm):
+    username = StringField("*Никнейм:", validators=[DataRequired()])
+    password = PasswordField("*Пароль:", validators=[DataRequired()])
+    email = EmailField("*Электронная почта:", validators=[DataRequired()])
+    passport_number = PasswordField("*Номер паспорта:", validators=[DataRequired()])
+
+    access = SubmitField("Регистрация")
 
 
 class LoginForm(FlaskForm):
-    username = StringField('имя тут:', validators=[DataRequired()])
-    password = PasswordField('пароль тут:', validators=[DataRequired()])
-    email = EmailField('email:', validators=[DataRequired()])
-    passport_number = PasswordField('номер паспорта:', validators=[DataRequired()])
-    image = FileField('Добавить картинку', validators=[DataRequired()])
-    access = SubmitField('Логин')
+    username = StringField("*Никнейм:", validators=[DataRequired()])
+    password = PasswordField("*Пароль:", validators=[DataRequired()])
+    email = EmailField("*Электронная почта:", validators=[DataRequired()])
+    passport_number = PasswordField("*Номер паспорта:", validators=[DataRequired()])
+
+    access = SubmitField("Войти")
 
 
 @app.route('/', methods=['GET'])
 def main_page():
-    if not is_logined:
+    if not authorized:
         return redirect('/login')
 
-    params = {
+    return render_template('main_page.html', **{})
 
-    }
-    return render_template('mane_page.html', **params)
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    global authorized
+    if authorized:
+        return redirect("/")
 
+    form = RegisterForm()
 
-@app.route('/login', methods=['GET', 'POST'])
+    if form.validate_on_submit():
+        import sqlite3
+
+        con = sqlite3.connect("db/user_db.sql")
+        cur = con.cursor()
+
+        cur.execute("INSERT INTO user_data(username, password, email, passport_number) VALUES(?, ?, ?, ?)",
+                    (form.username.data, form.password.data, form.email.data, form.passport_number.data))
+
+        con.commit()
+
+        authorized = True
+        return redirect('/')
+
+    return render_template('register.html', title='Регистрация', form=form)
+
+@app.route("/login", methods=["GET", "POST"])
 def login():
+    global authorized
+    if authorized:
+        return redirect("/")
+
     form = LoginForm()
 
     if form.validate_on_submit():
-        global is_logined
-        is_logined = True
+        import sqlite3
 
-        username = form.username.data
-        password = form.password.data
-        email = form.email.data
-        passport_number = form.passport_number.data
-        image = form.image.data.read()  # в байтовых данных
+        con = sqlite3.connect("db/user_db.sql")
+        cur = con.cursor()
 
-        # бд тут
+        login_data = cur.execute("SELECT id FROM user_data "
+                                 "WHERE username = ? AND password = ? AND email = ? AND passport_number = ?",
+                                 (form.username.data, form.password.data, form.email.data, form.passport_number.data)
+                                 ).fetchall()
 
-        # конец бд
+        if login_data:
+            authorized = True
+            return redirect("/")
 
-        return redirect('/')
+        return redirect("/login")
+
     return render_template('login.html', title='Авторизация', form=form)
 
 
