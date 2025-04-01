@@ -1,0 +1,11 @@
+body {
+    background-color: #f8f9fa; /* Светло-серый цвет */
+}
+
+header {
+    background-color: #e0e4e9; /* темнее Светло-серый цвет */
+    padding-left: 20px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
