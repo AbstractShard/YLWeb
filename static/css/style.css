@@ -9,3 +9,13 @@ header {
     margin-bottom: 10px;
 }
 
+h1 {
+    cursor: pointer; /* Указатель при наведении */
+    transition: color 0.3s ease; /* Плавный переход цвета */
+    max-width: 260px;
+}
+
+h1:hover {
+    color: blue; /* Изменение цвета текста при наведении */
+}
+

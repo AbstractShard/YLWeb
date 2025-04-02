@@ -33,6 +33,7 @@ def main_page():
 
     return render_template('main_page.html', **{})
 
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     global authorized
@@ -44,7 +45,7 @@ def register():
     if form.validate_on_submit():
         import sqlite3
 
-        con = sqlite3.connect("db/user_db.sql")
+        con = sqlite3.connect("db/user_db.db")
         cur = con.cursor()
 
         cur.execute("INSERT INTO user_data(username, password, email, passport_number) VALUES(?, ?, ?, ?)",
@@ -68,7 +69,7 @@ def login():
     if form.validate_on_submit():
         import sqlite3
 
-        con = sqlite3.connect("db/user_db.sql")
+        con = sqlite3.connect("db/user_db.db")
         cur = con.cursor()
 
         login_data = cur.execute("SELECT id FROM user_data "
