@@ -5,17 +5,27 @@ body {
 header {
     background-color: #e0e4e9; /* темнее Светло-серый цвет */
     padding-left: 20px;
-    padding-bottom: 10px;
     margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-h1 {
+.user-items {
+    height: 100px;
+    width: 120px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+header h1, .user-items img {
     cursor: pointer; /* Указатель при наведении */
     transition: color 0.3s ease; /* Плавный переход цвета */
     max-width: 260px;
 }
 
-h1:hover {
+header h1:hover {
     color: blue; /* Изменение цвета текста при наведении */
 }
 

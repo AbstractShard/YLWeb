@@ -1,10 +1,12 @@
+# TODO: class ProfileForm, func show_profile
+
 from flask import Flask, render_template, redirect
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, EmailField
 from wtforms.validators import DataRequired
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+app.config['SECRET_KEY'] = 'qwerty_secret_12345'
 authorized = False
 
 
@@ -24,6 +26,10 @@ class LoginForm(FlaskForm):
     passport_number = PasswordField("*Номер паспорта:", validators=[DataRequired()])
 
     access = SubmitField("Войти")
+
+
+class ProfileForm(FlaskForm):
+    ...
 
 
 @app.route('/', methods=['GET'])
@@ -58,6 +64,7 @@ def register():
 
     return render_template('register.html', title='Регистрация', form=form)
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     global authorized
@@ -83,7 +90,23 @@ def login():
 
         return redirect("/login")
 
-    return render_template('login.html', title='Авторизация', form=form)
+    params = {
+        "title": 'Авторизация',
+        "form": form
+    }
+
+    return render_template('login.html', **params)
+
+
+@app.route("/profile", methods=["GET", "POST"])
+def show_profile():
+    if not authorized:
+        return redirect('/login')
+
+    form = ProfileForm()
+    ...
+
+    return render_template('profile.html', title='Профиль', form=form)
 
 
 if __name__ == '__main__':
