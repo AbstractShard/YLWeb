@@ -19,10 +19,14 @@ header {
     align-items: center;
 }
 
-header h1, .user-items img {
+header h1, header .user-items img {
     cursor: pointer; /* Указатель при наведении */
     transition: color 0.3s ease; /* Плавный переход цвета */
     max-width: 260px;
+}
+
+header .user-items img {
+    border-radius: 25px;
 }
 
 header h1:hover {

@@ -35,7 +35,7 @@ class ProfileForm(FlaskForm):
 @app.route('/', methods=['GET'])
 def main_page():
     if not authorized:
-        return redirect('/login')
+        return redirect('/login/Сначала логин')
 
     return render_template('main_page.html', **{})
 
@@ -65,8 +65,8 @@ def register():
     return render_template('register.html', title='Регистрация', form=form)
 
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
+@app.route("/login/<message>", methods=["GET", "POST"])
+def login(message):
     global authorized
     if authorized:
         return redirect("/")
@@ -92,7 +92,8 @@ def login():
 
     params = {
         "title": 'Авторизация',
-        "form": form
+        "form": form,
+        "message": message
     }
 
     return render_template('login.html', **params)
@@ -101,7 +102,7 @@ def login():
 @app.route("/profile", methods=["GET", "POST"])
 def show_profile():
     if not authorized:
-        return redirect('/login')
+        return redirect('/login/Сначала логин')
 
     form = ProfileForm()
     ...

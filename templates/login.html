@@ -6,6 +6,11 @@
 <form action="" method="post" enctype="multipart/form-data" novalidate>
     {{ form.hidden_tag() }}
     <p>
+        <div class="alert alert-danger" role="alert">
+            {{ message }}
+        </div>
+    </p>
+    <p>
         {{ form.username.label }}<br>
         {{ form.username(class="form-control") }}<br>
         {% for error in form.username.errors %}
