@@ -1,35 +1,11 @@
 # TODO: class ProfileForm, func show_profile
 
 from flask import Flask, render_template, redirect
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, EmailField
-from wtforms.validators import DataRequired
+from forms import *
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'qwerty_secret_12345'
 authorized = False
-
-
-class RegisterForm(FlaskForm):
-    username = StringField("*Никнейм:", validators=[DataRequired()])
-    password = PasswordField("*Пароль:", validators=[DataRequired()])
-    email = EmailField("*Электронная почта:", validators=[DataRequired()])
-    passport_number = PasswordField("*Номер паспорта:", validators=[DataRequired()])
-
-    access = SubmitField("Регистрация")
-
-
-class LoginForm(FlaskForm):
-    username = StringField("*Никнейм:", validators=[DataRequired()])
-    password = PasswordField("*Пароль:", validators=[DataRequired()])
-    email = EmailField("*Электронная почта:", validators=[DataRequired()])
-    passport_number = PasswordField("*Номер паспорта:", validators=[DataRequired()])
-
-    access = SubmitField("Войти")
-
-
-class ProfileForm(FlaskForm):
-    ...
 
 
 @app.route('/', methods=['GET'])
@@ -37,7 +13,11 @@ def main_page():
     if not authorized:
         return redirect('/login/Сначала логин')
 
-    return render_template('main_page.html', **{})
+    params = {
+
+    }
+
+    return render_template('main_page.html', **params)
 
 
 @app.route("/register", methods=["GET", "POST"])

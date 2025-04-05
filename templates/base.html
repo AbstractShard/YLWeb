@@ -9,13 +9,28 @@
           crossorigin="anonymous">
     <link rel="stylesheet" href="../static/css/style.css">
     <title>Марс</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="../static/img/icon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../static/img/icon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../static/img/icon/favicon-16x16.png">
+    <link rel="manifest" href="../static/img/icon/site.webmanifest">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+          rel="stylesheet">
 </head>
 <body>
 <header>
     <h1 title="На главную страницу" onclick="location.href='/'">UltimateUnity</h1>
     <div class="user-items">
-        <img src="../static/img/default_profile_photo.png" alt="Непрогруженная аватарка"
-             title="В профиль" width="60px" height="60px" onclick="location.href='/profile'">
+        <div class="avatar" onclick="location.href='/profile'" title="В профиль">
+            <img src="../static/img/default_profile_photo.png" alt="Непрогруженная аватарка"
+                 width="60px" height="60px">
+            <div class="avatar-caption">ТЫ</div>
+        </div>
+        <img src="../static/img/currency.png" alt="Непрогруженная валюта" title="Валюта"
+             onclick="location.href='/currency'">
+        <img src="../static/img/notifications.png" alt="Непрогруженные уведомления" title="Уведомления"
+             onclick="location.href='/notifications'">
     </div>
 </header>
 <!-- Begin page content -->

@@ -1,35 +1,52 @@
 body {
+    font-family: "Roboto", sans-serif;
     background-color: #f8f9fa; /* Светло-серый цвет */
 }
 
 header {
     background-color: #e0e4e9; /* темнее Светло-серый цвет */
-    padding-left: 20px;
+    padding: 20px;
     margin-bottom: 10px;
+    height: auto;
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
 }
 
-.user-items {
-    height: 100px;
-    width: 120px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
+header h1, .avatar, header img{
+    cursor: pointer;
 }
 
-header h1, header .user-items img {
-    cursor: pointer; /* Указатель при наведении */
+header h1 {
     transition: color 0.3s ease; /* Плавный переход цвета */
     max-width: 260px;
 }
 
-header .user-items img {
-    border-radius: 25px;
-}
-
 header h1:hover {
     color: blue; /* Изменение цвета текста при наведении */
+}
+
+.user-items img {
+    border-radius: 25px;
+    margin-right: 5px;
+    float: left;
+}
+
+.avatar-caption {
+    font-weight: 500;
+    font-size: 20pt;
+}
+
+.avatar {
+    display: flex;
+    align-items: center;
+}
+
+.user-items {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 400px;
 }
 
