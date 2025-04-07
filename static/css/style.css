@@ -7,7 +7,6 @@ header {
     background-color: #e0e4e9; /* темнее Светло-серый цвет */
     padding: 20px;
     margin-bottom: 10px;
-    height: auto;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -27,7 +26,7 @@ header h1:hover {
     color: blue; /* Изменение цвета текста при наведении */
 }
 
-.user-items img {
+.avatar-img {
     border-radius: 25px;
     margin-right: 5px;
     float: left;
@@ -47,6 +46,26 @@ header h1:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 20px;
+}
+
+.currency {
+    border-radius: 100%;
+}
+
+main {
+    margin: 15px 0;
+}
+
+.carousel, .carousel-item img {
     width: 400px;
+    height: 300px;
+}
+
+.projects {
+    display: flex;
+    gap: 20px;
+    flex-flow: row wrap;
+    justify-content: center;
 }
 

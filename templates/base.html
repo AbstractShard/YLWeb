@@ -24,19 +24,30 @@
     <div class="user-items">
         <div class="avatar" onclick="location.href='/profile'" title="В профиль">
             <img src="../static/img/default_profile_photo.png" alt="Непрогруженная аватарка"
-                 width="60px" height="60px">
-            <div class="avatar-caption">ТЫ</div>
+                 width="60px" height="60px" class="avatar-img">
+            <span class="avatar-caption">GUEST</span>
         </div>
         <img src="../static/img/currency.png" alt="Непрогруженная валюта" title="Валюта"
-             onclick="location.href='/currency'">
+             onclick="location.href='/currency'" width="30px" height="30px" class="currency">
         <img src="../static/img/notifications.png" alt="Непрогруженные уведомления" title="Уведомления"
              onclick="location.href='/notifications'">
     </div>
 </header>
 <!-- Begin page content -->
-<main role="main" class="container">
+<main role="main" class="bg-light">
     {% block content %}
     {% endblock %}
 </main>
+<footer class="bg-dark text-white">
+    <div class="container py-4">
+        <h5>О нас</h5>
+        <p>Мы — компания, предоставляющая лучшие услуги в своей области.
+            Наша цель — удовлетворение потребностей клиентов. Покупка, продажа и создание проектов —
+            всё, что требуется от вас. Отличный сайт, быстрая обратная связь — это к нам.</p>
+        <div class="text-center py-3">
+            <small>&copy; 2025 UltimateUnity. Все права защищены.</small>
+        </div>
+    </div>
+</footer>
 </body>
 </html>
