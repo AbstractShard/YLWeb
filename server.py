@@ -1,37 +1,24 @@
+# TODO: class ProfileForm, func show_profile
+
 from flask import Flask, render_template, redirect
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, EmailField
-from wtforms.validators import DataRequired
+from forms import *
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+app.config['SECRET_KEY'] = 'qwerty_secret_12345'
 authorized = False
-
-
-class RegisterForm(FlaskForm):
-    username = StringField("*Никнейм:", validators=[DataRequired()])
-    password = PasswordField("*Пароль:", validators=[DataRequired()])
-    email = EmailField("*Электронная почта:", validators=[DataRequired()])
-    passport_number = PasswordField("*Номер паспорта:", validators=[DataRequired()])
-
-    access = SubmitField("Регистрация")
-
-
-class LoginForm(FlaskForm):
-    username = StringField("*Никнейм:", validators=[DataRequired()])
-    password = PasswordField("*Пароль:", validators=[DataRequired()])
-    email = EmailField("*Электронная почта:", validators=[DataRequired()])
-    passport_number = PasswordField("*Номер паспорта:", validators=[DataRequired()])
-
-    access = SubmitField("Войти")
 
 
 @app.route('/', methods=['GET'])
 def main_page():
     if not authorized:
-        return redirect('/login')
+        return redirect('/login/Сначала логин')
 
-    return render_template('main_page.html', **{})
+    params = {
+
+    }
+
+    return render_template('main_page.html', **params)
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -44,7 +31,7 @@ def register():
     if form.validate_on_submit():
         import sqlite3
 
-        con = sqlite3.connect("db/user_db.sql")
+        con = sqlite3.connect("db/user_db.db")
         cur = con.cursor()
 
         cur.execute("INSERT INTO user_data(username, password, email, passport_number) VALUES(?, ?, ?, ?)",
@@ -57,8 +44,9 @@ def register():
 
     return render_template('register.html', title='Регистрация', form=form)
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
+
+@app.route("/login/<message>", methods=["GET", "POST"])
+def login(message):
     global authorized
     if authorized:
         return redirect("/")
@@ -68,7 +56,7 @@ def login():
     if form.validate_on_submit():
         import sqlite3
 
-        con = sqlite3.connect("db/user_db.sql")
+        con = sqlite3.connect("db/user_db.db")
         cur = con.cursor()
 
         login_data = cur.execute("SELECT id FROM user_data "
@@ -80,9 +68,26 @@ def login():
             authorized = True
             return redirect("/")
 
-        return redirect("/login")
+        return redirect("/login/Нет такого юзера")
 
-    return render_template('login.html', title='Авторизация', form=form)
+    params = {
+        "title": 'Авторизация',
+        "form": form,
+        "message": message
+    }
+
+    return render_template('login.html', **params)
+
+
+@app.route("/profile", methods=["GET", "POST"])
+def show_profile():
+    if not authorized:
+        return redirect('/login/Сначала логин')
+
+    form = ProfileForm()
+    ...
+
+    return render_template('profile.html', title='Профиль', form=form)
 
 
 if __name__ == '__main__':

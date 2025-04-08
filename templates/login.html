@@ -1,10 +1,16 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="container">
 <h2>Логин</h2>
 <br>
 <form action="" method="post" enctype="multipart/form-data" novalidate>
     {{ form.hidden_tag() }}
+    <p>
+        <div class="alert alert-danger" role="alert">
+            {{ message }}
+        </div>
+    </p>
     <p>
         {{ form.username.label }}<br>
         {{ form.username(class="form-control") }}<br>
@@ -44,5 +50,5 @@
     <a href="/register">У МЕНЯ НЕТ АККАУНТА</a>
     <p>{{ form.access(type="submit", class="btn btn-primary") }}</p>
 </form>
-
+</div>
 {% endblock %}
