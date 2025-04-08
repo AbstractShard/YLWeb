@@ -68,7 +68,7 @@ def login(message):
             authorized = True
             return redirect("/")
 
-        return redirect("/login")
+        return redirect("/login/Нет такого юзера")
 
     params = {
         "title": 'Авторизация',

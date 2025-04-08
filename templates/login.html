@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="container">
 <h2>Логин</h2>
 <br>
 <form action="" method="post" enctype="multipart/form-data" novalidate>
@@ -49,5 +50,5 @@
     <a href="/register">У МЕНЯ НЕТ АККАУНТА</a>
     <p>{{ form.access(type="submit", class="btn btn-primary") }}</p>
 </form>
-
+</div>
 {% endblock %}
