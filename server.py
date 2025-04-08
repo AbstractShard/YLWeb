@@ -1,11 +1,24 @@
-from flask import Flask, render_template, redirect
-from templates.forms import *
-import sqlite3
+# TODO: class ProfileForm, func show_profile
 
+from flask import Flask, render_template, redirect
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import form
+
+from templates.forms import ProfileForm, LoginForm, RegisterForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'qwerty_secret_12345'
 authorized = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///member.db'
+db = SQLAlchemy(app)
+
+
+class User(db.Model):
+    username = db.Column(db.String(300), primary_key=True)
+    password = db.Column(db.String(300), nullable=False)
+    email = db.Column(db.String(300), primary_key=True)
+    passport_number = db.Column(db.Integer, nullable=False)
+    image = db.Column(db.LargeBinary, nullable=True)
 
 
 @app.route('/', methods=['GET'])
@@ -14,7 +27,6 @@ def main_page():
         return redirect('/login/Сначала логин')
 
     params = {
-
     }
 
     return render_template('main_page.html', **params)
@@ -27,18 +39,19 @@ def register():
         return redirect("/")
 
     form = RegisterForm()
-
     if form.validate_on_submit():
-        con = sqlite3.connect("db/user_db.db")
-        cur = con.cursor()
-
-        cur.execute("INSERT INTO user_data(username, password, email, passport_number) VALUES(?, ?, ?, ?)",
-                    (form.username.data, form.password.data, form.email.data, form.passport_number.data))
-
-        con.commit()
-
-        authorized = True
-        return redirect('/')
+        if bool(User.query.filter_by(username=form.username.data).all()) * bool(User.query.filter_by(
+                password=form.password.data).all()) == 0:
+            user = User(username=form.username.data, password=form.password.data, email=form.email.data,
+                        passport_number=int(form.passport_number.data))
+            db.session.add(user)
+            db.session.commit()
+            authorized = True
+            print('123')
+            return redirect('/')
+        else:
+            # TODO почта и логин существуют
+            pass
 
     return render_template('register.html', title='Регистрация', form=form)
 
@@ -52,24 +65,25 @@ def login(message):
     form = LoginForm()
 
     if form.validate_on_submit():
-        con = sqlite3.connect("db/user_db.db")
-        cur = con.cursor()
+        login_data = User.query.filter_by(username=form.username.data, password=form.password.data).all()
 
-        login_data = cur.execute("SELECT id FROM user_data "
-                                 "WHERE username = ? AND password = ? AND email = ? AND passport_number = ?",
-                                 (form.username.data, form.password.data, form.email.data, form.passport_number.data)
-                                 ).fetchall()
-
-        if login_data:
+        if bool(login_data):
+            print('yes')
             authorized = True
             return redirect("/")
 
-        return redirect("/login/Нет такого юзера")
+        return redirect("/login")
+
+    try:
+        username = form.username.data()
+    except:
+        username = 'GUEST'
 
     params = {
         "title": 'Авторизация',
         "form": form,
-        "message": message
+        "message": message,
+        "username": username
     }
 
     return render_template('login.html', **params)
@@ -81,19 +95,9 @@ def show_profile():
         return redirect('/login/Сначала логин')
 
     form = ProfileForm()
-
-    if form.validate_on_submit():
-        # измените данные в бд на новые 3 поля
-        print(form.username.data)
-        print(form.avatar.data.read())
-        print(form.about.data)
-        ...
-
     params = {
         "title": 'Профиль',
         "form": form,
-        "curr_username": 'Имя11111111111',  #
-        "curr_about": 'про'  #
     }
 
     return render_template('profile.html', **params)
