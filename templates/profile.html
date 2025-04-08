@@ -1,5 +1,39 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<div class="container">
+<h2>Профиль</h2>
+<br>
+<form action="" method="post" enctype="multipart/form-data" novalidate>
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.username.label }}<br>
+        {{ form.username(class="form-control", placeholder=curr_username) }}<br>
+        {% for error in form.username.errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.avatar.label }}<br>
+        {{ form.avatar(class="form-control") }}<br>
+        {% for error in form.avatar.errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.about.label }}<br>
+        {{ form.about(class="form-control", placeholder=curr_about) }}<br>
+        {% for error in form.about.errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    </p>
+    <p>{{ form.access(type="submit", class="btn btn-primary") }}</p>
+</form>
+</div>
 {% endblock %}
