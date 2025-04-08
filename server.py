@@ -1,7 +1,7 @@
-# TODO: class ProfileForm, func show_profile
-
 from flask import Flask, render_template, redirect
-from forms import *
+from templates.forms import *
+import sqlite3
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'qwerty_secret_12345'
@@ -29,8 +29,6 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        import sqlite3
-
         con = sqlite3.connect("db/user_db.db")
         cur = con.cursor()
 
@@ -54,8 +52,6 @@ def login(message):
     form = LoginForm()
 
     if form.validate_on_submit():
-        import sqlite3
-
         con = sqlite3.connect("db/user_db.db")
         cur = con.cursor()
 
@@ -85,9 +81,22 @@ def show_profile():
         return redirect('/login/Сначала логин')
 
     form = ProfileForm()
-    ...
 
-    return render_template('profile.html', title='Профиль', form=form)
+    if form.validate_on_submit():
+        # измените данные в бд на новые 3 поля
+        print(form.username.data)
+        print(form.avatar.data.read())
+        print(form.about.data)
+        ...
+
+    params = {
+        "title": 'Профиль',
+        "form": form,
+        "curr_username": 'Имя11111111111',  #
+        "curr_about": 'про'  #
+    }
+
+    return render_template('profile.html', **params)
 
 
 if __name__ == '__main__':
