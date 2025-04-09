@@ -1,54 +1,45 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-<h2>Логин</h2>
-<br>
-<form action="" method="post" enctype="multipart/form-data" novalidate>
-    {{ form.hidden_tag() }}
-    <p>
-        <div class="alert alert-danger" role="alert">
-            {{ message }}
-        </div>
-    </p>
-    <p>
-        {{ form.username.label }}<br>
-        {{ form.username(class="form-control") }}<br>
-        {% for error in form.username.errors %}
-            <div class="alert alert-danger" role="alert">
-                {{ error }}
-            </div>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.password.label }}<br>
-        {{ form.password(class="form-control", type="password") }}<br>
-        {% for error in form.password.errors %}
-            <div class="alert alert-danger" role="alert">
-                {{ error }}
-            </div>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.email.label }}<br>
-        {{ form.email(class="form-control", type="email") }}<br>
-        {% for error in form.email.errors %}
-            <div class="alert alert-danger" role="alert">
-                {{ error }}
-            </div>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.passport_number.label }}<br>
-        {{ form.passport_number(class="form-control", type="password") }}<br>
-        {% for error in form.passport_number.errors %}
-            <div class="alert alert-danger" role="alert">
-                {{ error }}
-            </div>
-        {% endfor %}
-    </p>
-    <a href="/register">У МЕНЯ НЕТ АККАУНТА</a>
-    <p>{{ form.access(type="submit", class="btn btn-primary") }}</p>
-</form>
-</div>
+    <div class="container">
+        <h2>Логин</h2>
+
+        <form action="" method="post" enctype="multipart/form-data" novalidate>
+            {{ form.hidden_tag() }}
+
+            <p>
+                {{ form.email.label }}<br>
+                {{ form.email(class="form-control", type="email") }}<br>
+
+                {% for error in form.email.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            </p>
+
+            <p>
+                {{ form.password.label }}<br>
+                {{ form.password(class="form-control", type="password") }}<br>
+
+                {% for error in form.password.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            </p>
+
+            {% if message %}
+                <p>
+                    <div class="alert alert-danger" role="alert">
+                        {{ message }}
+                    </div>
+                </p>
+            {% endif %}
+
+            <p><a href="/register">У МЕНЯ НЕТ АККАУНТА</a></p>
+
+            <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+        </form>
+    </div>
 {% endblock %}
