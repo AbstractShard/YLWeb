@@ -9,7 +9,7 @@
 
             <p>
                 {{ form.name.label }}<br>
-                {{ form.name(class="form-control", placeholder=curr_username) }}<br>
+                {{ form.name(class="form-control") }}<br>
 
                 {% for error in form.name.errors %}
                     <div class="alert alert-danger" role="alert">
@@ -20,7 +20,7 @@
 
             <p>
                 {{ form.about.label }}<br>
-                {{ form.about(class="form-control", placeholder=curr_about) }}
+                {{ form.about(class="form-control") }}
             </p>
 
             <p>
@@ -43,6 +43,10 @@
             {% endif %}
 
             <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+
+            <p>
+                <a href="/logout" class="btn btn-danger" title="Выйти">Выйти</a>
+            </p>
         </form>
     </div>
 {% endblock %}

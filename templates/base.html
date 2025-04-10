@@ -51,33 +51,24 @@
 
     <body>
         <header>
-            <h1 title="На главную страницу" onclick="location.href='/'">UltimateUnity</h1>
+            <h1 onclick="location.href='/'" title="На главную страницу">UltimateUnity</h1>
 
             <div class="user-items">
-                <div class="avatar" onclick="location.href='/profile'" title="В профиль">
-                    <img
-                            src="../static/img/default_profile_photo.png"
-                            alt="Непрогруженная аватарка"
-                            width="60px" height="60px" class="avatar-img"
-                    >
+                {% if current_user.is_authenticated %}
+                    <div onclick="location.href='/profile'" class="avatar" title="В профиль">
+                        <img
+                                src="../static/img/default_profile.png"
+                                width="60px"
+                                height="60px"
+                                class="avatar-img"
+                        >
 
-                    <span class="avatar-caption">{{ username }}</span>
-                </div>
-
-                <img
-                        src="../static/img/currency.png" alt="Непрогруженная валюта"
-                        title="Валюта"
-                        onclick="location.href='/currency'"
-                        width="30px"
-                        height="30px"
-                        class="currency"
-                >
-                <img
-                        src="../static/img/notifications.png"
-                        alt="Непрогруженные уведомления"
-                        title="Уведомления"
-                        onclick="location.href='/notifications'"
-                >
+                        <span class="avatar-caption">{{ current_user.name }}</span>
+                    </div>
+                {% else %}
+                    <button onclick="location.href='/register'" class="btn btn-primary">Зарегистрироваться</button>
+                    <button onclick="location.href='/login'" class="btn btn-success">Войти</button>
+                {% endif %}
             </div>
         </header>
 
