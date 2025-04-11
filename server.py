@@ -1,130 +1,120 @@
-# TODO: class ProfileForm, func show_profile
+from flask import Flask, render_template, redirect, request
+from flask_login import LoginManager, login_user, login_required, current_user, logout_user
 
-from flask import Flask, render_template, redirect
-from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import form
+from forms import RegisterForm, LoginForm, ProfileForm
 
-from templates.forms import ProfileForm, LoginForm, RegisterForm
+from db_related.data import db_session
+from db_related.data.users import User
 
 app = Flask(__name__)
+login_manager = LoginManager()
+login_manager.init_app(app)
+
 app.config['SECRET_KEY'] = 'qwerty_secret_12345'
-authorized = False
-login = 'GUEST'
-image = "../static/img/default_profile_photo.png"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///member.db'
-db = SQLAlchemy(app)
 
 
-class User(db.Model):
-    username = db.Column(db.String(300), primary_key=True)
-    password = db.Column(db.String(300), nullable=False)
-    email = db.Column(db.String(300), primary_key=True)
-    passport_number = db.Column(db.Integer, nullable=False)
-    image = db.Column(db.LargeBinary, nullable=True)
-    aboat = db.Column(db.Text, nullable=True)
-
-
-@app.route('/', methods=['GET'])
-def main_page():
-    if not authorized:
-        return redirect('/login/Сначала логин')
-
-    params = {
-    }
-
-    return render_template('main_page.html', **params)
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    global authorized
-    global login, image
-    if authorized:
-        return redirect("/")
-
     form = RegisterForm()
-    if form.validate_on_submit():
-        u = User.query.filter_by(username=form.username.data).first()
-        p = User.query.filter_by(email=form.email.data).first()
-        if u or p:
-            print('Такой логин уже существует')
-            # TODO почта и логин существуют
-        else:
-            user = User(username=form.username.data, password=form.password.data, email=form.email.data,
-                        passport_number=int(form.passport_number.data))
-            db.session.add(user)
-            db.session.commit()
-            authorized = True
-            login = form.username.data
-            return redirect('/')
 
-    return render_template('register.html', title='Регистрация', form=form)
-
-
-@app.route("/login/<message>", methods=["GET", "POST"])
-def login(message):
-    global authorized
-    global login, image
-    if authorized:
-        return redirect("/")
-
-    form = LoginForm()
-
-    if form.validate_on_submit():
-        login_data = User.query.filter_by(username=form.username.data, password=form.password.data).first()
-
-        if login_data:
-            login = form.username.data
-            authorized = True
-            return redirect("/")
-
-        return redirect("/login")
-
-    try:
-        username = form.username.data()
-    except:
-        username = 'GUEST'
-
-    params = {
-        "title": 'Авторизация',
-        "form": form,
-        "message": message,
-        "username": username,
-        "image": image
+    template_params = {
+        "template_name_or_list": "register.html",
+        "title": "Регистрация",
+        "form": form
     }
 
-    return render_template('login.html', **params)
+    if form.validate_on_submit():
+        if form.password.data != form.password_again.data:
+            return render_template(message="Пароли не совпадают.", **template_params)
+
+        db_sess = db_session.create_session()
+        if db_sess.query(User).filter(User.email == form.email.data).first():
+            return render_template(message="Такой пользователь уже есть.", **template_params)
+
+        user = User(name=form.name.data,
+                    email=form.email.data)
+
+        user.set_password(form.password.data)
+
+        db_sess.add(user)
+        db_sess.commit()
+
+        return redirect("/")
+
+    return render_template("register.html", form=form)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    form = LoginForm()
+
+    template_params = {
+        "template_name_or_list": "login.html",
+        "title": "Вход",
+        "form": form
+    }
+
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.email == form.email.data).first()
+
+        if user and user.check_password(form.password.data):
+            login_user(user, remember=form.remember_me.data)
+            return redirect("/")
+
+        return render_template(message="Неправильный логин или пароль.", **template_params)
+
+    return render_template(**template_params)
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect("/")
 
 
 @app.route("/profile", methods=["GET", "POST"])
-def show_profile():
-    global image, login
-    if not authorized:
-        return redirect('/login/Сначала логин')
-
+@login_required
+def profile():
     form = ProfileForm()
-    user = User.query.filter_by(username=login).first()
 
-    if form.validate_on_submit():
-        # измените данные в бд на новые 3 поля
-        user.username = form.username.data
-        user.image = form.avatar.data.read()
-        user.about = form.about.data
-        db.session.commit()
-        login = form.username.data
-        image = form.avatar.data.read()
-
-    params = {
-        "username": login,
-        "title": 'Профиль',
-        "form": form,
-        "curr_username": user.username,  #
-        "curr_about": user.aboat,
-        "image": image
+    template_params = {
+        "template_name_or_list": "profile.html",
+        "title": "Профиль",
+        "form": form
     }
 
-    return render_template('profile.html', **params)
+    if request.method == "GET":
+        form.name.data = current_user.name
+        form.about.data = current_user.about
+
+    if form.validate_on_submit():
+        current_user.name = form.name.data
+        current_user.about = form.about.data
+
+        db_sess = db_session.create_session()
+        db_sess.merge(current_user)
+        db_sess.commit()
+
+    return render_template(**template_params)
 
 
-if __name__ == '__main__':
-    app.run(port=8080, host='127.0.0.1')
+def main():
+    db_session.global_init("db_related/db/db.db")
+    app.run()
+
+
+@login_manager.user_loader
+def load_user(user_id: int) -> User:
+    db_sess = db_session.create_session()
+    return db_sess.query(User).get(user_id)
+
+
+if __name__ == "__main__":
+    main()
