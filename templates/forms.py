@@ -15,8 +15,6 @@ class RegisterForm(FlaskForm):
 class LoginForm(FlaskForm):
     username = StringField("*Никнейм:", validators=[DataRequired()])
     password = PasswordField("*Пароль:", validators=[DataRequired()])
-    email = EmailField("*Электронная почта:", validators=[DataRequired()])
-    passport_number = PasswordField("*Номер паспорта:", validators=[DataRequired()])
     # remember_me = BooleanField('Запомнить меня')
 
     access = SubmitField("Войти")

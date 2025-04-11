@@ -9,6 +9,8 @@ from templates.forms import ProfileForm, LoginForm, RegisterForm
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'qwerty_secret_12345'
 authorized = False
+login = 'GUEST'
+image = "../static/img/default_profile_photo.png"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///member.db'
 db = SQLAlchemy(app)
 
@@ -19,6 +21,7 @@ class User(db.Model):
     email = db.Column(db.String(300), primary_key=True)
     passport_number = db.Column(db.Integer, nullable=False)
     image = db.Column(db.LargeBinary, nullable=True)
+    aboat = db.Column(db.Text, nullable=True)
 
 
 @app.route('/', methods=['GET'])
@@ -35,23 +38,25 @@ def main_page():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     global authorized
+    global login, image
     if authorized:
         return redirect("/")
 
     form = RegisterForm()
     if form.validate_on_submit():
-        if bool(User.query.filter_by(username=form.username.data).all()) * bool(User.query.filter_by(
-                password=form.password.data).all()) == 0:
+        u = User.query.filter_by(username=form.username.data).first()
+        p = User.query.filter_by(email=form.email.data).first()
+        if u or p:
+            print('Такой логин уже существует')
+            # TODO почта и логин существуют
+        else:
             user = User(username=form.username.data, password=form.password.data, email=form.email.data,
                         passport_number=int(form.passport_number.data))
             db.session.add(user)
             db.session.commit()
             authorized = True
-            print('123')
+            login = form.username.data
             return redirect('/')
-        else:
-            # TODO почта и логин существуют
-            pass
 
     return render_template('register.html', title='Регистрация', form=form)
 
@@ -59,16 +64,17 @@ def register():
 @app.route("/login/<message>", methods=["GET", "POST"])
 def login(message):
     global authorized
+    global login, image
     if authorized:
         return redirect("/")
 
     form = LoginForm()
 
     if form.validate_on_submit():
-        login_data = User.query.filter_by(username=form.username.data, password=form.password.data).all()
+        login_data = User.query.filter_by(username=form.username.data, password=form.password.data).first()
 
-        if bool(login_data):
-            print('yes')
+        if login_data:
+            login = form.username.data
             authorized = True
             return redirect("/")
 
@@ -83,7 +89,8 @@ def login(message):
         "title": 'Авторизация',
         "form": form,
         "message": message,
-        "username": username
+        "username": username,
+        "image": image
     }
 
     return render_template('login.html', **params)
@@ -91,13 +98,29 @@ def login(message):
 
 @app.route("/profile", methods=["GET", "POST"])
 def show_profile():
+    global image, login
     if not authorized:
         return redirect('/login/Сначала логин')
 
     form = ProfileForm()
+    user = User.query.filter_by(username=login).first()
+
+    if form.validate_on_submit():
+        # измените данные в бд на новые 3 поля
+        user.username = form.username.data
+        user.image = form.avatar.data.read()
+        user.about = form.about.data
+        db.session.commit()
+        login = form.username.data
+        image = form.avatar.data.read()
+
     params = {
+        "username": login,
         "title": 'Профиль',
         "form": form,
+        "curr_username": user.username,  #
+        "curr_about": user.aboat,
+        "image": image
     }
 
     return render_template('profile.html', **params)

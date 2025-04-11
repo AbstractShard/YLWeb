@@ -29,24 +29,6 @@
             </div>
         {% endfor %}
     </p>
-    <p>
-        {{ form.email.label }}<br>
-        {{ form.email(class="form-control", type="email") }}<br>
-        {% for error in form.email.errors %}
-            <div class="alert alert-danger" role="alert">
-                {{ error }}
-            </div>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.passport_number.label }}<br>
-        {{ form.passport_number(class="form-control", type="password") }}<br>
-        {% for error in form.passport_number.errors %}
-            <div class="alert alert-danger" role="alert">
-                {{ error }}
-            </div>
-        {% endfor %}
-    </p>
     <a href="/register">У МЕНЯ НЕТ АККАУНТА</a>
     <p>{{ form.access(type="submit", class="btn btn-primary") }}</p>
 </form>
