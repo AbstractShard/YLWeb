@@ -57,14 +57,16 @@
                 {% if current_user.is_authenticated %}
                     <div onclick="location.href='/profile'" class="avatar" title="В профиль">
                         <img
-                                src="../static/img/default_profile.png"
+                                src="../static/img/profile.png"
                                 width="60px"
                                 height="60px"
                                 class="avatar-img"
                         >
-
                         <span class="avatar-caption">{{ current_user.name }}</span>
                     </div>
+                    <img src="../static/img/currency.png" alt="Непрогруженная валюта"
+                         title="В отдел валют" class="currency">
+                    <img src="../static/img/notifications.png" alt="Непрогруженные уведомления" title="В уведомления">
                 {% else %}
                     <button onclick="location.href='/register'" class="btn btn-primary">Зарегистрироваться</button>
                     <button onclick="location.href='/login'" class="btn btn-success">Войти</button>

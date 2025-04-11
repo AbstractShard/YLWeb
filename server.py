@@ -44,7 +44,10 @@ def register():
         db_sess.add(user)
         db_sess.commit()
 
-        return redirect("/")
+        with open('static/img/profile.png', 'wb') as curr_f:
+            curr_f.write(user.avatar)
+
+        return redirect("/login")
 
     return render_template("register.html", form=form)
 
@@ -65,6 +68,7 @@ def login():
 
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
+
             return redirect("/")
 
         return render_template(message="Неправильный логин или пароль.", **template_params)
@@ -97,8 +101,14 @@ def profile():
     if form.validate_on_submit():
         current_user.name = form.name.data
         current_user.about = form.about.data
+        avatar_data = form.img.data.read()
+
+        with open('static/img/profile.png', 'wb') as f:
+            f.write(avatar_data)
 
         db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.email == current_user.email).first()
+        user.avatar = avatar_data
         db_sess.merge(current_user)
         db_sess.commit()
 

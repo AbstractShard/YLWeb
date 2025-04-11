@@ -51,6 +51,8 @@ header h1:hover {
 
 .currency {
     border-radius: 100%;
+    width: 30px;
+    height: 30px;
 }
 
 main {
@@ -67,5 +69,10 @@ main {
     gap: 20px;
     flex-flow: row wrap;
     justify-content: center;
+}
+
+.profile-bottom-buttons {
+    display: flex;
+    justify-content: space-between;
 }
 
