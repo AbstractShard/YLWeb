@@ -15,7 +15,14 @@ app.config['SECRET_KEY'] = 'qwerty_secret_12345'
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    template_params = {
+        "template_name_or_list": 'index.html',
+        "title": 'UltimateUnity',
+        "home": ...,
+        "most-liked": ...,
+        "recent": ...,
+    }
+    return render_template(**template_params)
 
 
 @app.route("/register", methods=["GET", "POST"])
