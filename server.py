@@ -1,10 +1,11 @@
 from flask import Flask, render_template, redirect, request
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
-
 from forms import RegisterForm, LoginForm, ProfileForm
-
 from db_related.data import db_session
 from db_related.data.users import User
+
+
+PROJECT_TYPES = ['Home', 'Most-liked', 'Recent']
 
 app = Flask(__name__)
 login_manager = LoginManager()
@@ -15,12 +16,14 @@ app.config['SECRET_KEY'] = 'qwerty_secret_12345'
 
 @app.route("/")
 def index():
+
     template_params = {
         "template_name_or_list": 'index.html',
         "title": 'UltimateUnity',
         "home": ...,
         "most-liked": ...,
         "recent": ...,
+        "project_types": PROJECT_TYPES
     }
     return render_template(**template_params)
 

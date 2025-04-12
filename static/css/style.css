@@ -65,7 +65,11 @@ main {
 }
 
 .projects-block {
-    margin: 0 40px 50px;
+    margin-bottom: 50px;
+}
+
+.all-projects {
+    margin: 0 40px;
 }
 
 .projects-block span {
@@ -113,6 +117,8 @@ main {
     flex-flow: row wrap;
     justify-content: start;
 }
+
+
 
 .profile-bottom-buttons {
     display: flex;
