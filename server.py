@@ -1,8 +1,13 @@
 from flask import Flask, render_template, redirect, request
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
+
 from forms import RegisterForm, LoginForm, ProfileForm
+
 from db_related.data import db_session
 from db_related.data.users import User
+
+import consts
+from consts import check_buffer
 
 
 PROJECT_TYPES = ['Home', 'Most-liked', 'Recent']
@@ -15,8 +20,8 @@ app.config['SECRET_KEY'] = 'qwerty_secret_12345'
 
 
 @app.route("/")
+@check_buffer
 def index():
-
     template_params = {
         "template_name_or_list": 'index.html',
         "title": 'UltimateUnity',
@@ -29,6 +34,7 @@ def index():
 
 
 @app.route("/register", methods=["GET", "POST"])
+@check_buffer
 def register():
     form = RegisterForm()
 
@@ -49,20 +55,24 @@ def register():
         user = User(name=form.name.data,
                     email=form.email.data)
 
+        with open(consts.DEFAULT_PROFILE_PATH, mode="rb") as def_img:
+            user.img = def_img.read()
+
+            with open(consts.CURRENT_PROFILE_PATH, mode="wb") as curr_img:
+                curr_img.write(user.img)
+
         user.set_password(form.password.data)
 
         db_sess.add(user)
         db_sess.commit()
 
-        with open('static/img/profile.png', 'wb') as curr_f:
-            curr_f.write(user.avatar)
-
         return redirect("/login")
 
-    return render_template("register.html", form=form)
+    return render_template(**template_params)
 
 
 @app.route("/login", methods=["GET", "POST"])
+@check_buffer
 def login():
     form = LoginForm()
 
@@ -79,6 +89,9 @@ def login():
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
 
+            with open(consts.CURRENT_PROFILE_PATH, mode="wb") as curr_img:
+                curr_img.write(current_user.img)
+
             return redirect("/")
 
         return render_template(message="Неправильный логин или пароль.", **template_params)
@@ -88,6 +101,7 @@ def login():
 
 @app.route("/logout")
 @login_required
+@check_buffer
 def logout():
     logout_user()
     return redirect("/")
@@ -95,6 +109,7 @@ def logout():
 
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
+@check_buffer
 def profile():
     form = ProfileForm()
 
@@ -111,14 +126,17 @@ def profile():
     if form.validate_on_submit():
         current_user.name = form.name.data
         current_user.about = form.about.data
-        avatar_data = form.img.data.read()
 
-        with open('static/img/profile.png', 'wb') as f:
-            f.write(avatar_data)
+        if not (img_data := form.img.data.read()):
+            with open(consts.DEFAULT_PROFILE_PATH, mode="rb") as def_img:
+                current_user.img = def_img.read()
+        else:
+            current_user.img = img_data
+
+        with open(consts.CURRENT_PROFILE_PATH, mode="wb") as curr_img:
+            curr_img.write(current_user.img)
 
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.email == current_user.email).first()
-        user.avatar = avatar_data
         db_sess.merge(current_user)
         db_sess.commit()
 
