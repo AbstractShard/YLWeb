@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, abort
+from flask import Flask, render_template, redirect, request
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
 
 from forms import RegisterForm, LoginForm, ProfileForm
@@ -20,12 +20,12 @@ app.config['SECRET_KEY'] = 'qwerty_secret_12345'
 
 
 @app.errorhandler(404)
-def not_found():
+def not_found(error):
     return render_template("404.html", title="UltimateUnity")
 
 
 @app.errorhandler(400)
-def bad_request():
+def bad_request(error):
     return render_template("404.html", title="UltimateUnity")
 
 
@@ -139,14 +139,11 @@ def profile():
         current_user.name = form.name.data
         current_user.about = form.about.data
 
-        if not (img_data := form.img.data.read()):
-            with open(consts.DEFAULT_PROFILE_PATH, mode="rb") as def_img:
-                current_user.img = def_img.read()
-        else:
+        if img_data := form.img.data.read():
             current_user.img = img_data
 
-        with open(consts.CURRENT_PROFILE_PATH, mode="wb") as curr_img:
-            curr_img.write(current_user.img)
+            with open(consts.CURRENT_PROFILE_PATH, mode="wb") as curr_img:
+                curr_img.write(current_user.img)
 
         db_sess = db_session.create_session()
         db_sess.merge(current_user)

@@ -11,7 +11,7 @@
                             <img src="../static/img/add_project.png" class="add-project" onclick="location.href='/add_project'"
                                  title="Добавить проект" alt="Добавить проект">
                         {% endif %}
-                        <div id="{{ name }}{{ i }}" class="carousel slide" data-bs-ride="carousel"
+                        <div id="{{ name }}{{ loop.index }}" class="carousel slide" data-bs-ride="carousel"
                              data-bs-interval="30000" data-bs-pause="hover">
 
                             <!-- Слайды -->
@@ -28,10 +28,10 @@
                             </div>
 
                             <!-- Кнопки управления - компактные и полупрозрачные -->
-                            <button class="carousel-control-prev" type="button" data-bs-target="#{{ name }}{{ i }}" data-bs-slide="prev">
+                            <button class="carousel-control-prev" type="button" data-bs-target="#{{ name }}{{ loop.index }}" data-bs-slide="prev">
                                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                             </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#{{ name }}{{ i }}" data-bs-slide="next">
+                            <button class="carousel-control-next" type="button" data-bs-target="#{{ name }}{{ loop.index }}" data-bs-slide="next">
                                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
                             </button>
                         </div>
