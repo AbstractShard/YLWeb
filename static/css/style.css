@@ -1,3 +1,10 @@
+.error {
+    width: 80%;
+    display: block;
+    margin: 0 auto;
+    height: auto;
+}
+
 body {
     font-family: "Roboto", sans-serif;
     background-color: #f8f9fa; /* Светло-серый цвет */
@@ -26,6 +33,11 @@ header h1:hover {
     color: blue; /* Изменение цвета текста при наведении */
 }
 
+.avatar {
+    display: flex;
+    align-items: center;
+}
+
 .avatar-img {
     border-radius: 25px;
     margin-right: 5px;
@@ -35,11 +47,6 @@ header h1:hover {
 .avatar-caption {
     font-weight: 500;
     font-size: 20pt;
-}
-
-.avatar {
-    display: flex;
-    align-items: center;
 }
 
 .user-items {
@@ -64,17 +71,32 @@ main {
     height: 210px;
 }
 
-.projects-block {
-    margin-bottom: 50px;
-}
-
 .all-projects {
     margin: 0 40px;
+}
+
+.projects {
+    display: flex;
+    gap: 20px;
+    flex-flow: row wrap;
+    justify-content: start;
+    align-items: center;
+}
+
+.projects-block {
+    margin-bottom: 50px;
 }
 
 .projects-block span {
     width: 15px;
     height: 15px;
+}
+
+.add-project {
+    height: 170px;
+    width: 170px;
+    cursor: pointer;
+    border-radius: 15%;
 }
 
 .carousel-control-prev, .carousel-control-next {
@@ -111,17 +133,7 @@ main {
     justify-content: flex-end;        /* Выравнивание по правому краю */
 }
 
-.projects {
-    display: flex;
-    gap: 20px;
-    flex-flow: row wrap;
-    justify-content: start;
-}
-
-
-
 .profile-bottom-buttons {
     display: flex;
     justify-content: space-between;
 }
-

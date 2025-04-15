@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, redirect, request, abort
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
 
 from forms import RegisterForm, LoginForm, ProfileForm
@@ -19,16 +19,29 @@ login_manager.init_app(app)
 app.config['SECRET_KEY'] = 'qwerty_secret_12345'
 
 
+@app.errorhandler(404)
+def not_found():
+    return render_template("404.html", title="UltimateUnity")
+
+
+@app.errorhandler(400)
+def bad_request():
+    return render_template("404.html", title="UltimateUnity")
+
+
 @app.route("/")
 @check_buffer
 def index():
+    projects = {
+        "Home": ['!add_project', ..., ...],
+        "Most-liked": [..., ..., ..., ...],
+        "Recent": [..., ..., ..., ..., ...]
+    }
     template_params = {
         "template_name_or_list": 'index.html',
         "title": 'UltimateUnity',
-        "home": ...,
-        "most-liked": ...,
-        "recent": ...,
-        "project_types": PROJECT_TYPES
+        "project_types": PROJECT_TYPES,
+        "projects": projects
     }
     return render_template(**template_params)
 
@@ -37,7 +50,6 @@ def index():
 @check_buffer
 def register():
     form = RegisterForm()
-
     template_params = {
         "template_name_or_list": "register.html",
         "title": "Регистрация",
