@@ -41,7 +41,6 @@ header h1:hover {
 .avatar-img {
     border-radius: 25px;
     margin-right: 5px;
-    float: left;
 }
 
 .avatar-caption {
@@ -49,17 +48,29 @@ header h1:hover {
     font-size: 20pt;
 }
 
+.currency {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.currency-img {
+    border-radius: 100%;
+    width: 35px;
+    height: 35px;
+    margin-right: 5px;
+}
+
+.currency-caption {
+    font-weight: 500;
+    font-size: 17pt;
+}
+
 .user-items {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
-}
-
-.currency {
-    border-radius: 100%;
-    width: 30px;
-    height: 30px;
+    gap: 28px;
 }
 
 main {

@@ -14,6 +14,7 @@ class User(SqlAlchemyBase, UserMixin):
     name = Column(String, nullable=False)
     about = Column(String, nullable=True)
     img = Column(LargeBinary, nullable=False)
+    currency = Column(Integer, nullable=False, default=0)
 
     # Информация нужная для логина
     email = Column(String, index=True, unique=True, nullable=False)

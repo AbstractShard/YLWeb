@@ -64,8 +64,14 @@
                         >
                         <span class="avatar-caption">{{ current_user.name }}</span>
                     </div>
-
-                    <img src="../static/img/currency.png" alt="Непрогруженная валюта" title="В отдел валют" class="currency">
+                    <div onclick="location.href='/currency'" class="currency" title="В отдел валют">
+                        <img
+                                src="../static/img/currency.png"
+                                class="currency-img"
+                                alt="Непрогруженная валюта"
+                        >
+                        <span class="currency-caption">{{ current_user.currency }}</span>
+                    </div>
                     <img src="../static/img/notifications.png" alt="Непрогруженные уведомления" title="В уведомления">
                 {% else %}
                     <button onclick="location.href='/register'" class="btn btn-primary">Зарегистрироваться</button>
