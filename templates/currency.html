@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container">
+        <h1>Баланс:</h1>
+        <div style="font-size:50pt; margin:10px 20px 50px 50px">{{balance}}</div>
+
+        <p style="font-size:30pt;" align="center"> Транзакции </p>
+        <table width="80%" border="1" cellspacing="0" cellpadding="4">
+            <tr align="center" style="background-color:#AFEEEE;">
+            <thead>
+                <tr>
+                    <th><b>Время</b></th>
+                    <th><b>Отправитель</b></th>
+                    <th><b>Получатель</b></th>
+                    <th><b>Сумма</b></th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% if transactions == [] %}
+                <tr> <td colspan="4" style="text-align:center"> Здесь пока пусто</td></tr>
+            {% else %}
+                {% for i in transactions %}
+                    <tr>
+                        <td>{{i['Время']}}</td>
+                        <td>{{i['Отправитель']}}</td>
+                        <td>{{i['Получатель']}}</td>
+                        <td>{{i['Сумма']}}</td>
+                {% endfor %}
+            {% endif %}
+            </tbody>
+
+
+            </table>
+
+
+
+
+
+    </div>
+{% endblock %}
