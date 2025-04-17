@@ -151,11 +151,11 @@ def profile():
 
     return render_template(**template_params)
 
+
 @app.route('/currency')
 @check_buffer
 def currency():
-    db_sess = db_session.create_session()
-    balance = db_sess.query(User.currency).filter(User.name == "Я").first()[0]
+    balance = current_user.currency
     template_params = {
         "template_name_or_list": "currency.html",
         "title": "Валюта",
