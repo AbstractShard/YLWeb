@@ -5,8 +5,35 @@
         <h1>Баланс:</h1>
         <div style="font-size:50pt; margin:10px 20px 50px 50px">{{balance}}</div>
 
-        <p style="font-size:30pt;" align="center"> Транзакции </p>
-        <table width="80%" border="1" cellspacing="0" cellpadding="4">
+        <p style="font-size:30pt;" align="center"> Купить валюту </p>
+        <table width="100%" border="1" cellspacing="0" cellpadding="4">
+            <tr align="center" style="background-color:#AFEEEE;">
+            <thead>
+                <tr>
+                    <th><b>Цена</b></th>
+                    <th><b>Android/OIS</b></th>
+                    <th><b>Windows/Linux</b></th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% if price == [] %}
+                <tr> <td colspan="3" style="text-align:center"> Здесь пока пусто</td></tr>
+            {% else %}
+                {% for i in price %}
+                    <tr>
+                        <td>{{i['Цена']}}</td>
+                        <td>{{i['Android/OIS']}}</td>
+                        <td>{{i['Windows/Linux']}}</td>
+                {% endfor %}
+            {% endif %}
+            </tbody>
+
+
+            </table>
+
+        <p style="font-size:30pt;" align="center">Транзакции </p>
+        <table width="100%" border="1" cellspacing="0" cellpadding="4">
             <tr align="center" style="background-color:#AFEEEE;">
             <thead>
                 <tr>

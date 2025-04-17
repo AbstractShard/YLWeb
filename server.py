@@ -156,10 +156,22 @@ def profile():
 @check_buffer
 def currency():
     balance = current_user.currency
+    price = [
+        {"Цена": '500₽', "Android/OIS": 250, "Windows/Linux": 255},
+        {"Цена": '1000₽', "Android/OIS": 500, "Windows/Linux": 510},
+        {"Цена": '2000₽', "Android/OIS": 1000, "Windows/Linux": 1100},
+        {"Цена": '5000₽', "Android/OIS": 2500, "Windows/Linux": 2600},
+        {"Цена": '10000₽', "Android/OIS": 5000, "Windows/Linux": 5100},
+        {"Цена": '15000₽', "Android/OIS": 7500, "Windows/Linux": 7600},
+        {"Цена": '20000₽', "Android/OIS": 10000, "Windows/Linux": 10200},
+        {"Цена": '25000₽', "Android/OIS": 12500, "Windows/Linux": 13000},
+        {"Цена": '30000₽', "Android/OIS": 15000, "Windows/Linux": 16000}
+    ]
     template_params = {
         "template_name_or_list": "currency.html",
         "title": "Валюта",
         "balance": balance,
+        "price": price,
         "transactions": []
     }
     return render_template(**template_params)
