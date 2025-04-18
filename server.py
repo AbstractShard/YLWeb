@@ -60,6 +60,9 @@ def register():
         if form.password.data != form.password_again.data:
             return render_template(message="Пароли не совпадают.", **template_params)
 
+        if not form.code_verified():
+            return render_template(message=f"Код не тот.{form.verify_code}", **template_params)
+
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.email == form.email.data).first():
             return render_template(message="Такой пользователь уже есть.", **template_params)

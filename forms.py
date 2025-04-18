@@ -1,6 +1,9 @@
+import random
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, EmailField, FileField, TextAreaField, BooleanField
 from wtforms.validators import DataRequired
+from consts import send_email
 
 
 class RegisterForm(FlaskForm):
@@ -10,7 +13,23 @@ class RegisterForm(FlaskForm):
     password = PasswordField("* Пароль", validators=[DataRequired()])
     password_again = PasswordField("* Повторите пароль", validators=[DataRequired()])
 
+    verify_code_field = StringField("* Подтверждение почты", validators=[DataRequired()])
+    send_verify_code = SubmitField("Отправить код")
+
     submit = SubmitField("Зарегистрироваться")
+
+    verify_code = None
+
+    def validate_send_verify_code(self, field):
+        if self.email.data and field.data:
+            self.verify_code = str(random.randint(1, 999999999999999999999999999999999 ** 99))
+            with open('verify_code.txt', 'w') as f:
+                f.write(self.verify_code)
+            send_email(self.email.data, "verify_email", self.verify_code)
+
+    def code_verified(self):
+        with open('verify_code.txt', 'r') as f:
+            return f.read() == self.verify_code_field.data
 
 
 class LoginForm(FlaskForm):
@@ -27,4 +46,3 @@ class ProfileForm(FlaskForm):
     img = FileField("Изображение профиля")
 
     submit = SubmitField("Изменить")
-

@@ -59,6 +59,20 @@
                 {% endfor %}
             </p>
 
+            <p>
+                {{ form.verify_code_field.label }}<br>
+                <div class="verify_code">
+                    {{ form.verify_code_field(class="form-control", type="text") }}
+                    {{ form.send_verify_code(class="btn btn-primary") }}
+                </div>
+                <br>
+                {% for error in form.verify_code_field.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            </p>
+
             <p><a href="/login">У МЕНЯ ЕСТЬ АККАУНТ</a></p>
 
             <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>

@@ -148,3 +148,9 @@ main {
     display: flex;
     justify-content: space-between;
 }
+
+.verify_code {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
