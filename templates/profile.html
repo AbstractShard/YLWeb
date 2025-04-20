@@ -32,6 +32,10 @@
             </p>
 
             <p>
+                <a href="/change_password" class="btn btn-primary px-4" title="Сменить пароль">Изменить пароль</a>
+            </p>
+
+            <p>
                 {{ form.img.label }}<br>
                 {{ form.img }}<br>
 
@@ -41,8 +45,9 @@
                     </div>
                 {% endfor %}
             </p>
+            <br>
             <div class="profile-bottom-buttons">
-                <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+                <p>{{ form.submit(type="submit", class="btn btn-success") }}</p>
 
                 <p>
                     <a href="/logout" class="btn btn-danger" title="Выйти">Выйти</a>

@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, request
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
 
-from forms import RegisterForm, LoginForm, ProfileForm
+from forms import RegisterForm, LoginForm, ProfileForm, ChangePasswordForm
 
 from db_related.data import db_session
 from db_related.data.users import User
@@ -107,6 +107,9 @@ def login():
             with open(consts.CURRENT_PROFILE_PATH, mode="wb") as curr_img:
                 curr_img.write(current_user.img)
 
+            with open('current_user.txt', 'w') as f:
+                f.write(str(current_user.email))
+
             return redirect("/")
 
         return render_template(message="Неправильный логин или пароль.", **template_params)
@@ -151,6 +154,33 @@ def profile():
         db_sess = db_session.create_session()
         db_sess.merge(current_user)
         db_sess.commit()
+
+    return render_template(**template_params)
+
+
+@app.route("/change_password", methods=["GET", "POST"])
+@login_required
+@check_buffer
+def change_password():
+    form = ChangePasswordForm()
+
+    template_params = {
+        "template_name_or_list": "change_password.html",
+        "title": "Изменить пароль",
+        "form": form
+    }
+
+    if form.validate_on_submit():
+        if not form.code_verified():
+            return render_template(message=f"Код не тот.{form.verify_code}", **template_params)
+
+        current_user.set_password(form.new_password.data)
+
+        db_sess = db_session.create_session()
+        db_sess.merge(current_user)
+        db_sess.commit()
+
+        return redirect("/")
 
     return render_template(**template_params)
 
