@@ -9,7 +9,6 @@ from db_related.data.users import User
 import consts
 from consts import check_buffer
 
-
 PROJECT_TYPES = ['Home', 'Most-liked', 'Recent']
 
 app = Flask(__name__)
@@ -185,20 +184,29 @@ def change_password():
     return render_template(**template_params)
 
 
-@app.route('/currency')
+@app.route('/currency', methods=['GET', 'POST'])
 @check_buffer
 def currency():
     balance = current_user.currency
+    if request.method == 'POST':
+        button_name = request.form['button']
+        template_params = {
+            "template_name_or_list": "buy.html",
+            "title": "Оплата",
+            "price": button_name
+        }
+        return render_template(**template_params)
+
     price = [
-        {"Цена": '500₽', "Android/OIS": 250, "Windows/Linux": 255},
-        {"Цена": '1000₽', "Android/OIS": 500, "Windows/Linux": 510},
-        {"Цена": '2000₽', "Android/OIS": 1000, "Windows/Linux": 1100},
-        {"Цена": '5000₽', "Android/OIS": 2500, "Windows/Linux": 2600},
-        {"Цена": '10000₽', "Android/OIS": 5000, "Windows/Linux": 5100},
-        {"Цена": '15000₽', "Android/OIS": 7500, "Windows/Linux": 7600},
-        {"Цена": '20000₽', "Android/OIS": 10000, "Windows/Linux": 10200},
-        {"Цена": '25000₽', "Android/OIS": 12500, "Windows/Linux": 13000},
-        {"Цена": '30000₽', "Android/OIS": 15000, "Windows/Linux": 16000}
+        {"Цена": '500₽', "GEFs": 250},
+        {"Цена": '1000₽', "GEFs": 500},
+        {"Цена": '2000₽', "GEFs": 1000},
+        {"Цена": '5000₽', "GEFs": 2500},
+        {"Цена": '10000₽', "GEFs": 5000},
+        {"Цена": '15000₽', "GEFs": 7500},
+        {"Цена": '20000₽', "GEFs": 10000},
+        {"Цена": '25000₽', "GEFs": 12500},
+        {"Цена": '30000₽', "GEFs": 15000}
     ]
     template_params = {
         "template_name_or_list": "currency.html",
@@ -208,6 +216,9 @@ def currency():
         "transactions": []
     }
     return render_template(**template_params)
+
+
+
 
 
 def main():
