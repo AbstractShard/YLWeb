@@ -193,7 +193,7 @@ def currency():
         template_params = {
             "template_name_or_list": "buy.html",
             "title": "Оплата",
-            "price": button_name
+            "price": button_name[:-1]
         }
         return render_template(**template_params)
 

@@ -1,13 +1,39 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="container">
-        <h1>К оплате: {{price}}</h1>
+    <br><link rel="stylesheet" href="https://yookassa.ru/integration/simplepay/css/yookassa_construct_form.css?v=1.23.0">
+<form class="yoomoney-payment-form" action="https://yookassa.ru/integration/simplepay/payment" method="post" accept-charset="utf-8" >
 
 
 
+
+    <div class="ym-customer-info">
+        <div class="ym-block-title">О покупателе</div>
+        <input name="cps_email" class="ym-input" placeholder="Email" type="text" value="">
+
+        <input name="custName" class="ym-input" placeholder="ФИО" type="text" value="">
 
 
 
     </div>
+
+    <div class="ym-hidden-inputs">
+
+
+
+    </div>
+
+
+
+    <div class="ym-payment-btn-block ym-before-line ym-align-space-between">
+        <div class="ym-input-icon-rub ym-display-none">
+            <input name="sum" placeholder="100.00" class="ym-input ym-sum-input ym-required-input" type="number" step="any" value="{{price}}">
+        </div>
+        <button data-text="Заплатить" class="ym-btn-pay ym-result-price"><span class="ym-text-crop">Заплатить</span> <span class="ym-price-output"> {{price}}.00&nbsp;₽</span></button>
+    </div>
+<input name="shopId" type="hidden" value="1076335"></form>
+<script src="https://yookassa.ru/integration/simplepay/js/yookassa_construct_form.js?v=1.23.0"></script>
+<br />
+<br />
+
 {% endblock %}
