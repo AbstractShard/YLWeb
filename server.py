@@ -1,13 +1,14 @@
 from flask import Flask, render_template, redirect, request
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
 
-from forms import RegisterForm, LoginForm, ProfileForm, ChangePasswordForm
+from forms import RegisterForm, LoginForm, ProfileForm, ChangePasswordForm, ForgotPasswordForm
 
 from db_related.data import db_session
-from db_related.data.users import User
+from db_related.data.users import User, TempUser
 
 import consts
 from consts import check_buffer
+
 
 PROJECT_TYPES = ['Home', 'Most-liked', 'Recent']
 
@@ -60,7 +61,7 @@ def register():
             return render_template(message="Пароли не совпадают.", **template_params)
 
         if not form.code_verified():
-            return render_template(message=f"Код не тот.{form.verify_code}", **template_params)
+            return render_template(message=f"Код не тот.", **template_params)
 
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.email == form.email.data).first():
@@ -78,6 +79,8 @@ def register():
         user.set_password(form.password.data)
 
         db_sess.add(user)
+        temp_user = db_sess.query(TempUser).filter(TempUser.email == form.email.data).first()
+        db_sess.delete(temp_user)
         db_sess.commit()
 
         return redirect("/login")
@@ -105,9 +108,6 @@ def login():
 
             with open(consts.CURRENT_PROFILE_PATH, mode="wb") as curr_img:
                 curr_img.write(current_user.img)
-
-            with open('current_user.txt', 'w') as f:
-                f.write(str(current_user.email))
 
             return redirect("/")
 
@@ -161,7 +161,7 @@ def profile():
 @login_required
 @check_buffer
 def change_password():
-    form = ChangePasswordForm()
+    form = ChangePasswordForm(current_user.email)
 
     template_params = {
         "template_name_or_list": "change_password.html",
@@ -180,6 +180,35 @@ def change_password():
         db_sess.commit()
 
         return redirect("/")
+
+    return render_template(**template_params)
+
+
+@app.route("/forgot_password", methods=["GET", "POST"])
+@check_buffer
+def forgot_password():
+    form = ForgotPasswordForm()
+
+    template_params = {
+        "template_name_or_list": "forgot_password.html",
+        "title": "Забыл пароль",
+        "form": form
+    }
+
+    if form.validate_on_submit():
+        if not form.code_verified():
+            return render_template(message=f"Код не тот.", **template_params)
+
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        if not user:
+            return render_template(message="Такого пользователя нет.", **template_params)
+
+        user.set_password(form.new_password.data)
+        db_sess.merge(user)
+        db_sess.commit()
+
+        return redirect("/login")
 
     return render_template(**template_params)
 
@@ -216,9 +245,6 @@ def currency():
         "transactions": []
     }
     return render_template(**template_params)
-
-
-
 
 
 def main():

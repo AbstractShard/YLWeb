@@ -20,8 +20,30 @@ class User(SqlAlchemyBase, UserMixin):
     email = Column(String, index=True, unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
 
+    # Информация нужная для восстановления пароля (у каждого юзера свой код)
+    verify_code = Column(String, nullable=True)
+
     def set_password(self, password: str):
         self.hashed_password = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.hashed_password, password)
+
+    def set_verify_code(self, code: str):
+        self.verify_code = generate_password_hash(code)
+
+    def check_verify_code(self, code: str) -> bool:
+        return check_password_hash(self.verify_code, code)
+
+
+class TempUser(SqlAlchemyBase):
+    __tablename__ = "temp_users"
+
+    email = Column(String, primary_key=True)
+    verify_code = Column(String, nullable=False)
+
+    def set_verify_code(self, code: str):
+        self.verify_code = generate_password_hash(code)
+
+    def check_verify_code(self, code: str) -> bool:
+        return check_password_hash(self.verify_code, code)

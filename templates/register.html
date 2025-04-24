@@ -63,7 +63,7 @@
                 {{ form.verify_code_field.label }}<br>
                 <div class="verify_code">
                     {{ form.verify_code_field(class="form-control", type="text") }}
-                    {{ form.send_verify_code(class="btn btn-primary") }}
+                    {{ form.send_verify_code(class="btn btn-primary", id="send_verify_code") }}
                 </div>
                 <br>
                 {% for error in form.verify_code_field.errors %}
@@ -76,6 +76,12 @@
             <p><a href="/login">У МЕНЯ ЕСТЬ АККАУНТ</a></p>
 
             <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+            {% if email_status %}
+                <div class="alert alert-info">
+                    {{ email_status }}
+                </div>
+            {% endif %}
         </form>
     </div>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
 {% endblock %}
