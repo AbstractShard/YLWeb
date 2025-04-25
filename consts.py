@@ -1,8 +1,11 @@
+import random
 from functools import wraps
 import os
 from dotenv import load_dotenv
 import smtplib
 from email.message import EmailMessage
+
+from flask import render_template
 from flask_login import current_user, AnonymousUserMixin
 from db_related.data import db_session
 from db_related.data.users import User, TempUser
@@ -47,80 +50,24 @@ def send_email(email_receiver, subject, verification_code):
         subject = "Регистрация"
 
         # HTML-шаблон с кнопкой
-        html_content = f"""
-        <html>
-        <body>
-            <div style="background: #f9f9f9; padding: 20px; border-radius: 10px;">
-                <h2 style="color: #333;">Ваш код подтверждения</h2>
-                <br>
-                <div style="text-align: center; margin: 0 auto; border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
-                    <h1>{verification_code}</h1>
-                </div>
-                <br>
-                <p style="font-size: 17px;">Этот код действителен в течение 15 минут.</p>
-    
-                <p style="color: #777; font-size: 14px;">
-                    Если вы не запрашивали этот код, проигнорируйте это письмо. Просто какой-то
-                     <strike>даун</strike> слабоумный вашу почту вписал и теперь отправляет вам коды верификации.
-                </p>
-            </div>
-        </body>
-        </html>
-        """
+        html_content = render_template('email/register.html', verification_code=verification_code)
 
     elif subject == "change_password":
         subject = "Смена пароля"
 
-        html_content = f"""
-        <html>
-        <body>
-            <div style="background: #f9f9f9; padding: 20px; border-radius: 10px;">
-                <h2 style="color: #333;">Ваш код подтверждения</h2>
-                <br>
-                <div style="text-align: center; margin: 0 auto; border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
-                    <h1>{verification_code}</h1>
-                </div>
-                <br>
-                <p style="font-size: 17px;">Этот код действителен бесконечно. Так что не парьтесь.</p>
-    
-                <p style="color: #777; font-size: 14px;">
-                    Если вы не запрашивали этот код, проигнорируйте это письмо. Просто какой-то
-                     <strike>даун</strike> слабоумный вашу почту вписал и теперь отправляет вам коды смены пароля.
-                </p>
-            </div>
-        </body>
-        </html>
-        """
+        html_content = render_template('email/change_password.html', verification_code=verification_code)
 
     elif subject == "forgot_password":
         subject = "Забыл пароль"
 
-        html_content = f"""
-                <html>
-                <body>
-                    <div style="background: #f9f9f9; padding: 20px; border-radius: 10px;">
-                        <h2 style="color: #333;">Ваш код подтверждения</h2>
-                        <br>
-                        
-                        <div style="text-align: center; margin: 0 auto; border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
-                            <h1>{verification_code}</h1>
-                        </div>
-                        <br>
-                        
-                        <p style="font-size: 17px;">Этот код действителен бесконечно. Так что не парьтесь.</p>
+        html_content = render_template('email/forgot_password.html', verification_code=verification_code)
 
-                        <p style="color: #777; font-size: 14px;">
-                            Если вы не запрашивали этот код, проигнорируйте это письмо. Просто какой-то
-                             <strike>даун</strike> слабоумный вашу почту вписал и теперь отправляет вам коды  пароля.
-                        </p>
-                    </div>
-                </body>
-                </html>
-                """
+    random_senders = list(SENDERS.items())
+    random.shuffle(random_senders)
 
     max_retries = 3
     timeout_seconds = 10
-    for sender, password in SENDERS.items():
+    for sender, password in random_senders:
         for attempt in range(max_retries):
             try:
                 with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=timeout_seconds) as smtp:
@@ -149,4 +96,4 @@ def user_exists(user_email, temp=False) -> bool:
 
 
 if __name__ == "__main__":
-    send_email("V2h8I@example.com", "verify_email", "1234567890")
+    print(send_email("6K3uGSGDFUIGubiudsfu8q45637462534regydf7^%^%F6sdg0@example.com", "verify_email", "1234567890"))

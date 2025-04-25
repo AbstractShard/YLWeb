@@ -32,7 +32,7 @@ class RegisterForm(FlaskForm):
         if self.email.data and field.data:
             db_sess = db_session.create_session()
             verify_code = str(random.randint(1000000000000000000000,
-                                             9999999999999999999999))
+                                             9999999999999999999999 ** 99))
             if user_exists(self.email.data, True):
                 user = db_sess.query(TempUser).filter(TempUser.email == self.email.data).first()
                 user.set_verify_code(verify_code)
@@ -85,7 +85,7 @@ class ChangePasswordForm(FlaskForm):
         if field.data:
             db_sess = db_session.create_session()
             verify_code = str(random.randint(1000000000000000000,
-                                             9999999999999999999))
+                                             9999999999999999999 ** 99))
             user = db_sess.query(User).filter(User.email == self.email).first()
             user.set_verify_code(verify_code)
             db_sess.commit()
@@ -118,7 +118,7 @@ class ForgotPasswordForm(FlaskForm):
                 return redirect("/forgot_password2/123")
 
             verify_code = str(random.randint(1000000000000000000,
-                                             9999999999999999999))
+                                             9999999999999999999 ** 99))
             user = db_sess.query(User).filter(User.email == self.email.data).first()
             user.set_verify_code(verify_code)
             db_sess.commit()
