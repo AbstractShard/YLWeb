@@ -217,14 +217,6 @@ def forgot_password():
 @check_buffer
 def currency():
     balance = current_user.currency
-    if request.method == 'POST':
-        button_name = request.form['button']
-        template_params = {
-            "template_name_or_list": "buy.html",
-            "title": "Оплата",
-            "price": button_name[:-1]
-        }
-        return render_template(**template_params)
 
     price = [
         {"Цена": '500₽', "GEFs": 250},
@@ -237,6 +229,25 @@ def currency():
         {"Цена": '25000₽', "GEFs": 12500},
         {"Цена": '30000₽', "GEFs": 15000}
     ]
+
+    if request.method == 'POST':
+        button_name = request.form['button']
+
+        db_sess = db_session.create_session()
+        balance += [i["GEFs"] for i in price if i["Цена"] == button_name][0]
+        current_user.currency = balance
+        db_sess.merge(current_user)
+        db_sess.commit()
+
+
+        template_params = {
+            "template_name_or_list": "buy.html",
+            "title": "Оплата",
+            "price": button_name[:-1]
+        }
+
+        return render_template(**template_params)
+
     template_params = {
         "template_name_or_list": "currency.html",
         "title": "Валюта",
@@ -245,7 +256,6 @@ def currency():
         "transactions": []
     }
     return render_template(**template_params)
-
 
 def main():
     db_session.global_init("db_related/db/db.db")
