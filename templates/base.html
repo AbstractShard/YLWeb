@@ -72,7 +72,12 @@
                         >
                         <span class="currency-caption">{{ current_user.currency }}</span>
                     </div>
-                    <img src="../static/img/notifications.png" alt="Непрогруженные уведомления" title="В уведомления">
+                    <div onclick="location.href='/message'" class="message" title="В уведомления">
+                        <img
+                                src="../static/img/notifications.png"
+                                alt="Непрогруженные уведомления"
+                        >
+                    </div>
                 {% else %}
                     <button onclick="location.href='/register'" class="btn btn-primary">Зарегистрироваться</button>
                     <button onclick="location.href='/login'" class="btn btn-success">Войти</button>

@@ -1,6 +1,10 @@
-from flask import Flask, render_template, redirect, request
+import datetime
+from uuid import uuid4
+
+from flask import Flask, render_template, redirect, request, flash
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
 
+from db_related.data.message import Message
 from forms import RegisterForm, LoginForm, ProfileForm, ChangePasswordForm, ForgotPasswordForm
 
 from db_related.data import db_session
@@ -8,7 +12,6 @@ from db_related.data.users import User, TempUser
 
 import consts
 from consts import check_buffer
-
 
 PROJECT_TYPES = ['Home', 'Most-liked', 'Recent']
 
@@ -237,8 +240,11 @@ def currency():
         balance += [i["GEFs"] for i in price if i["Цена"] == button_name][0]
         current_user.currency = balance
         db_sess.merge(current_user)
+        operation = Message(user=current_user.id, name='Покупка', data=datetime.datetime.now().strftime("%d.%m.%Y %H:%M"), readability=False,
+                            sender='UltimateUnity', recipient=current_user.name, suma=button_name,
+                            about=f'Вам начислено {[i["GEFs"] for i in price if i["Цена"] == button_name][0]} GEF')
+        db_sess.add(operation)
         db_sess.commit()
-
 
         template_params = {
             "template_name_or_list": "buy.html",
@@ -248,14 +254,52 @@ def currency():
 
         return render_template(**template_params)
 
+    transactions = []
+    db_sess = db_session.create_session()
+    messages_db = db_sess.query(Message).filter(Message.user == current_user.id).all()
+    for i in messages_db:
+        if i.suma:
+            transactions.append({"Время": i.data,
+                                 "Сумма": i.suma,
+                                 "Отправитель": i.sender,
+                                 "Получатель": i.recipient})
+
     template_params = {
         "template_name_or_list": "currency.html",
         "title": "Валюта",
         "balance": balance,
         "price": price,
-        "transactions": []
+        "transactions": transactions
     }
     return render_template(**template_params)
+
+
+@app.route('/message')
+def message():
+    messages = []
+    db_sess = db_session.create_session()
+    messages_db = db_sess.query(Message).filter(Message.user == current_user.id).all()
+    news = 0
+    for i in messages_db:
+        messages.append({"Дата": i.data,
+                         "Заголовок": i.name,
+                         "Описание": i.about,
+                         "Прочитанность": i.readability, })
+        if not i.readability:
+            news += 1
+
+    template_params = {
+        "template_name_or_list": "message.html",
+        "title": "Уведомления",
+        "messages": reversed(messages),
+        "news": news
+    }
+
+    for i in messages_db:
+        i.readability = True
+    db_sess.commit()
+    return render_template(**template_params)
+
 
 def main():
     db_session.global_init("db_related/db/db.db")

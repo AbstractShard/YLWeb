@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container">
+        <h1>Уведомления: {{news}} новых</h1>
+
+        <style>
+   table {
+    width: 100%; /* Ширина таблицы */
+    border-collapse: collapse;
+   }
+   td, th {
+    padding: 3px;
+    border: 1px solid #000; /* Параметры рамки */
+   }
+   th {
+    background: #afd792; /* Цвет фона */
+    color: #333;  /* Цвет текста */
+   }
+   tbody tr:hover {
+    background: #f3bd48; /* Цвет фона при наведении */
+    color: #fff; /* Цвет текста при наведении */
+   }
+  </style>
+        <form method="post" action="">
+            <table width="100%" border="1" cellspacing="0" cellpadding="4">
+                <tr align="center" style="background-color:#AFEEEE;">
+                <thead>
+                    <tr>
+                        <th><b>Дата</b></th>
+                        <th><b>Заголовок</b></th>
+                        <th><b>Описание</b></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% if messages == [] %}
+                    <tr> <td colspan="3" style="text-align:center"> Здесь пока пусто</td></tr>
+                {% else %}
+                    {% for i in messages %}
+                        <tr
+                        {% if i['Прочитанность'] is false %}
+                            bgcolor="90e0ef"
+                        {% endif %}
+                        >
+                            <td>{{i['Дата']}}</td>
+                            <td>{{i['Заголовок']}}</td>
+                            <td>{{i['Описание']}}</td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+                </tbody>
+
+
+                </table>
+        </form>
+
+    </div>
+{% endblock %}
