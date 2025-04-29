@@ -1,0 +1,39 @@
+.avatar {
+    display: flex;
+    align-items: center;
+}
+
+.avatar-img {
+    border-radius: 25px;
+    margin-right: 5px;
+}
+
+.avatar-caption {
+    font-weight: 500;
+    font-size: 20pt;
+}
+
+.currency {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.currency-img {
+    border-radius: 100%;
+    width: 35px;
+    height: 35px;
+    margin-right: 5px;
+}
+
+.currency-caption {
+    font-weight: 500;
+    font-size: 17pt;
+}
+
+.user-items {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 28px;
+}

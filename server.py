@@ -1,14 +1,14 @@
 import datetime
-from uuid import uuid4
 
-from flask import Flask, render_template, redirect, request, flash
+from flask import Flask, render_template, redirect, request
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
+from flask_restful import Api
 
 from db_related.data.message import Message
 from forms import RegisterForm, LoginForm, ProfileForm, ChangePasswordForm, ForgotPasswordForm
 
-from db_related.data import db_session
-from db_related.data.users import User, TempUser
+from db_related.data import db_session, users_resources, verify_cods_resources
+from db_related.data.users import User
 
 import consts
 from consts import check_buffer
@@ -16,20 +16,55 @@ from consts import check_buffer
 PROJECT_TYPES = ['Home', 'Most-liked', 'Recent']
 
 app = Flask(__name__)
+api = Api(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
 app.config['SECRET_KEY'] = 'qwerty_secret_12345'
 
 
-@app.errorhandler(404)
-def not_found(error):
-    return render_template("404.html", title="UltimateUnity")
-
-
 @app.errorhandler(400)
 def bad_request(error):
-    return render_template("404.html", title="UltimateUnity")
+    template_params = {
+        "template_name_or_list": "error.html",
+        "title": "UltimateUnity",
+        "error": "400",
+        "error_img": "../static/img/errors/400.jpg"
+    }
+    return render_template(**template_params)
+
+
+@app.errorhandler(401)
+def unauthorized(error):
+    template_params = {
+        "template_name_or_list": "error.html",
+        "title": "UltimateUnity",
+        "error": "401",
+        "error_img": "../static/img/errors/401.jpg"
+    }
+    return render_template(**template_params)
+
+
+@app.errorhandler(403)
+def forbidden(error):
+    template_params = {
+        "template_name_or_list": "error.html",
+        "title": "UltimateUnity",
+        "error": "403",
+        "error_img": "../static/img/errors/403.jpg"
+    }
+    return render_template(**template_params)
+
+
+@app.errorhandler(404)
+def not_found(error):
+    template_params = {
+        "template_name_or_list": "error.html",
+        "title": "UltimateUnity",
+        "error": "404",
+        "error_img": "../static/img/errors/404.jpg"
+    }
+    return render_template(**template_params)
 
 
 @app.route("/")
@@ -73,17 +108,11 @@ def register():
         user = User(name=form.name.data,
                     email=form.email.data)
 
-        with open(consts.DEFAULT_PROFILE_PATH, mode="rb") as def_img:
-            user.img = def_img.read()
-
-            with open(consts.CURRENT_PROFILE_PATH, mode="wb") as curr_img:
-                curr_img.write(user.img)
+        user.set_default_img()
 
         user.set_password(form.password.data)
 
         db_sess.add(user)
-        temp_user = db_sess.query(TempUser).filter(TempUser.email == form.email.data).first()
-        db_sess.delete(temp_user)
         db_sess.commit()
 
         return redirect("/login")
@@ -219,7 +248,7 @@ def forgot_password():
 @app.route('/currency', methods=['GET', 'POST'])
 @check_buffer
 def currency():
-    balance = current_user.currency
+    balance = current_user.balance
 
     price = [
         {"Цена": '500₽', "GEFs": 250},
@@ -238,7 +267,7 @@ def currency():
 
         db_sess = db_session.create_session()
         balance += [i["GEFs"] for i in price if i["Цена"] == button_name][0]
-        current_user.currency = balance
+        current_user.balance = balance
         db_sess.merge(current_user)
         operation = Message(user=current_user.id, name='Покупка', data=datetime.datetime.now().strftime("%d.%m.%Y %H:%M"), readability=False,
                             sender='UltimateUnity', recipient=current_user.name, suma=button_name,
@@ -301,15 +330,24 @@ def message():
     return render_template(**template_params)
 
 
-def main():
-    db_session.global_init("db_related/db/db.db")
-    app.run()
-
-
 @login_manager.user_loader
 def load_user(user_id: int) -> User:
     db_sess = db_session.create_session()
     return db_sess.query(User).get(user_id)
+
+
+def main():
+    db_session.global_init("db_related/db/db.db")
+    # restful api
+    # для списка объектов
+    api.add_resource(users_resources.UsersListResource, '/api/users')
+    # для одного объекта
+    api.add_resource(users_resources.UsersResource, '/api/user/<user_email>')
+    # rest api
+    # для получения верификационных кодов
+    api.add_resource(verify_cods_resources.VerifyCodeResource, '/api/verify_code')
+
+    app.run()
 
 
 if __name__ == "__main__":

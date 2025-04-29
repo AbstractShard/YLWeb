@@ -1,20 +1,15 @@
-from random import shuffle
+from requests import get, post, put, delete
+
+# Testing new user apis
+BASE_URL = "http://127.0.0.1:5000/api"
 
 
-a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-shuffle(a)
+# Test posting new user
+response = post(f"{BASE_URL}/users", json={
+    "email": "Ivan2009e@yandex.ru",
+    "verify_code": "63948642830128870114753",
+    "password": "Ivan2009e",
+    "name": "Ivan Ivanov",
+})
+print(response.json())
 
-print(a)
-
-b = {
-    "a": 1,
-    "b": 2,
-    "c": 3,
-    "d": 4,
-    "e": 5
-}
-
-b = list(b.items())
-shuffle(b)
-
-print(b)

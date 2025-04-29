@@ -14,6 +14,18 @@
                 href="../static/css/style.css"
         >
         <link
+                rel="stylesheet"
+                href="../static/css/users.css"
+        >
+        <link
+                rel="stylesheet"
+                href="../static/css/projects.css"
+        >
+        <link
+                rel="stylesheet"
+                href="../static/css/auth.css"
+        >
+        <link
                 rel="apple-touch-icon" sizes="180x180"
                 href="../static/img/icon/apple-touch-icon.png"
         >
@@ -70,7 +82,7 @@
                                 class="currency-img"
                                 alt="Непрогруженная валюта"
                         >
-                        <span class="currency-caption">{{ current_user.currency }}</span>
+                        <span class="currency-caption">{{ current_user.balance }}</span>
                     </div>
                     <div onclick="location.href='/message'" class="message" title="В уведомления">
                         <img
@@ -88,21 +100,21 @@
         <main role="main" class="bg-light">
             {% block content %}
             {% endblock %}
-        </main>
 
-        <footer class="bg-dark text-white">
-            <div class="container py-4">
-                <h5>О нас</h5>
+            <footer class="bg-dark text-white">
+                <div class="container py-4">
+                    <h5>О нас</h5>
 
-                <p>Мы — компания, предоставляющая лучшие услуги в своей области.
-                    Наша цель — удовлетворение потребностей клиентов. Покупка, продажа и создание проектов —
-                    всё, что требуется от вас. Отличный сайт, быстрая обратная связь — это к нам.
-                </p>
+                    <p>Мы — компания, предоставляющая лучшие услуги в своей области.
+                        Наша цель — удовлетворение потребностей клиентов. Покупка, продажа и создание проектов —
+                        всё, что требуется от вас. Отличный сайт, быстрая обратная связь — это к нам.
+                    </p>
 
-                <div class="text-center py-3">
-                    <small>&copy; 2025 UltimateUnity. Все права защищены.</small>
+                    <div class="text-center py-3">
+                        <small>&copy; 2025 UltimateUnity. Все права защищены.</small>
+                    </div>
                 </div>
-            </div>
-        </footer>
+            </footer>
+        </main>
     </body>
 </html>

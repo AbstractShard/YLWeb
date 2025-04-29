@@ -4,9 +4,10 @@ from flask import redirect
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, EmailField, FileField, TextAreaField, BooleanField
 from wtforms.validators import DataRequired
-from consts import send_email, user_exists
+from db_related.data.verify_cods import send_email
 from db_related.data import db_session
-from db_related.data.users import User, TempUser
+from db_related.data.users import User
+from db_related.data.verify_cods import VerifyCode
 
 
 class RegisterForm(FlaskForm):
@@ -31,25 +32,30 @@ class RegisterForm(FlaskForm):
     def validate_send_verify_code(self, field):
         if self.email.data and field.data:
             db_sess = db_session.create_session()
-            verify_code = str(random.randint(1000000000000000000000,
-                                             9999999999999999999999 ** 99))
-            if user_exists(self.email.data, True):
-                user = db_sess.query(TempUser).filter(TempUser.email == self.email.data).first()
-                user.set_verify_code(verify_code)
+            verify_code_generated = str(random.randint(10000000000000000000000,
+                                                       99999999999999999999999))
+
+            verify_code = db_sess.query(VerifyCode).filter(VerifyCode.email == self.email.data).first()
+            if not verify_code:
+                verify_code = VerifyCode(
+                    email=self.email.data,
+                    subject="register"
+                )
+                verify_code.set_verify_code(verify_code_generated)
+                db_sess.add(verify_code)
             else:
-                user = TempUser(email=self.email.data)
-                user.set_verify_code(verify_code)
-                db_sess.add(user)
+                verify_code.set_verify_code(verify_code_generated)
+                verify_code.update('register')
 
             db_sess.commit()
-            send_email(self.email.data, "verify_email", verify_code)
+            send_email(self.email.data, "verify_email", verify_code_generated)
 
     def code_verified(self):
         db_sess = db_session.create_session()
-        user = db_sess.query(TempUser).filter(TempUser.email == self.email.data).first()
-        if not user:
+        verify_code = db_sess.query(VerifyCode).filter(VerifyCode.email == self.email.data).first()
+        if not verify_code:
             return False
-        return user.check_verify_code(self.verify_code_field.data)
+        return verify_code.check_verify_code(self.verify_code_field.data)
 
 
 class LoginForm(FlaskForm):
@@ -84,19 +90,30 @@ class ChangePasswordForm(FlaskForm):
     def validate_send_verify_code(self, field):
         if field.data:
             db_sess = db_session.create_session()
-            verify_code = str(random.randint(1000000000000000000,
-                                             9999999999999999999 ** 99))
-            user = db_sess.query(User).filter(User.email == self.email).first()
-            user.set_verify_code(verify_code)
+            verify_code_generated = str(random.randint(10000000000000000000000,
+                                                       99999999999999999999999))
+
+            verify_code = db_sess.query(VerifyCode).filter(user_email == self.email).first()
+            if not verify_code:
+                verify_code = VerifyCode(
+                    email=self.email,
+                    subject="change_password"
+                )
+                db_sess.add(verify_code)
+                verify_code.set_verify_code(verify_code_generated)
+            else:
+                verify_code.set_verify_code(verify_code_generated)
+                verify_code.update('change_password')
+
             db_sess.commit()
-            send_email(user.email, "change_password", verify_code)
+            send_email(self.email, "change_password", verify_code_generated)
 
     def code_verified(self):
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.email == self.email).first()
-        if not user or not user.verify_code:
+        verify_code = db_sess.query(VerifyCode).filter(VerifyCode.email == self.email).first()
+        if not verify_code:
             return False
-        return user.check_verify_code(self.verify_code_field.data)
+        return verify_code.check_verify_code(self.verify_code_field.data)
 
 
 class ForgotPasswordForm(FlaskForm):
@@ -109,24 +126,28 @@ class ForgotPasswordForm(FlaskForm):
 
     submit = SubmitField("Восстановить пароль")
 
-    verify_code = None
-
     def validate_send_verify_code(self, field):
         if field.data and self.email.data:
             db_sess = db_session.create_session()
-            if not user_exists(self.email.data):
-                return redirect("/forgot_password2/123")
+            verify_code_generated = str(random.randint(10000000000000000000000,
+                                                       99999999999999999999999))
 
-            verify_code = str(random.randint(1000000000000000000,
-                                             9999999999999999999 ** 99))
-            user = db_sess.query(User).filter(User.email == self.email.data).first()
-            user.set_verify_code(verify_code)
+            verify_code = db_sess.query(VerifyCode).filter(VerifyCode.email == self.email.data).first()
+            if not verify_code:
+                verify_code = VerifyCode(
+                    email=self.email.data,
+                    subject="forgot_password"
+                )
+            else:
+                verify_code.set_verify_code(verify_code_generated)
+                verify_code.update('forgot_password')
+
             db_sess.commit()
-            send_email(self.email.data, "forgot_password", verify_code)
+            send_email(self.email.data, "forgot_password", verify_code_generated)
 
     def code_verified(self):
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.email == self.email.data).first()
-        if not user:
+        verify_code = db_sess.query(VerifyCode).filter(VerifyCode.email == self.email.data).first()
+        if not verify_code:
             return False
-        return user.check_verify_code(self.verify_code_field.data)
+        return verify_code.check_verify_code(self.verify_code_field.data)
