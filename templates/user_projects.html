@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Проекты пользователя {{ current_user.name }}</h1>
+
+    <p><button class="btn btn-success" onclick="location.href='/add_project'">Создать проект</button></p>
+
+    {% for proj in projects %}
+        <div class="col-md6 border rounded" onclick="location.href='/edit_project/{{ proj['id'] }}'">
+            <img
+                    src="{{ proj['imgs'][0] }}"
+                    width="100px"
+                    height="100px"
+            >
+
+            <h2>{{ proj["name"] }}</h2>
+        </div>
+    {% endfor %}
+{% endblock %}

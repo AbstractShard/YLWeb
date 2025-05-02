@@ -37,3 +37,10 @@
     align-items: center;
     gap: 28px;
 }
+
+.main-items {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 35px;
+}

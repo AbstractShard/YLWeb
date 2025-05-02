@@ -22,6 +22,9 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     email = Column(String, index=True, unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
 
+    # Для проектов
+    created_projects = orm.relationship("Project", back_populates="created_by_user", foreign_keys="Project.created_by_user_id")
+
     def set_password(self, password: str):
         self.hashed_password = generate_password_hash(password)
 

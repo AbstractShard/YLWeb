@@ -1,12 +1,10 @@
 import random
 
-from flask import redirect
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, EmailField, FileField, TextAreaField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, EmailField, FileField, TextAreaField, BooleanField, IntegerField
 from wtforms.validators import DataRequired
 from db_related.data.verify_cods import send_email
 from db_related.data import db_session
-from db_related.data.users import User
 from db_related.data.verify_cods import VerifyCode
 
 
@@ -151,3 +149,15 @@ class ForgotPasswordForm(FlaskForm):
         if not verify_code:
             return False
         return verify_code.check_verify_code(self.verify_code_field.data)
+
+
+class EditProjectForm(FlaskForm):
+    name = StringField("* Имя проекта", validators=[DataRequired()])
+    description = TextAreaField("Описание")
+
+    price = IntegerField("Цена")
+
+    imgs = FileField("* Изображения")
+    files = FileField("* ZIP-Файл с проектом")
+
+    submit = SubmitField("Сохранить изменения")
