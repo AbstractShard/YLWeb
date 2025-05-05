@@ -4,7 +4,7 @@
     <div  class="container">
         <h2>Регистрация</h2>
 
-        <form action="" method="post" enctype="multipart/form-data" novalidate>
+        <form id="register-form" action="" method="post" enctype="multipart/form-data" novalidate>
             {{ form.hidden_tag() }}
 
             {% if message %}
@@ -28,7 +28,7 @@
 
             <p>
                 {{ form.email.label }}<br>
-                {{ form.email(class="form-control", type="email") }}<br>
+                {{ form.email(class="form-control", type="email", required=True) }}<br>
 
                 {% for error in form.email.errors %}
                     <div class="alert alert-danger" role="alert">
@@ -60,12 +60,15 @@
             </p>
 
             <p>
-                {{ form.verify_code_field.label }}<br>
+                {{ form.verify_code_field.label }}
                 <div class="verify_code">
-                    {{ form.verify_code_field(class="form-control", type="text") }}
-                    {{ form.send_verify_code(class="btn btn-primary", id="send_verify_code") }}
+                    <p>
+                        {{ form.verify_code_field(class="form-control") }}<br>
+                    </p>
+                    <p>
+                        {{ form.send_verify_code(class="btn btn-primary", id="send_verify_code", type="button") }}
+                    </p>
                 </div>
-                <br>
                 {% for error in form.verify_code_field.errors %}
                     <div class="alert alert-danger" role="alert">
                         {{ error }}
@@ -73,9 +76,15 @@
                 {% endfor %}
             </p>
 
+            <p>
+                <div class="h-captcha" data-sitekey="{{ HCAPTCHA_SITE_KEY }}"></div>
+            </p>
+
             <p><a href="/login">У МЕНЯ ЕСТЬ АККАУНТ</a></p>
 
-            <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+            <input type="hidden" id="recaptcha-token" name="recaptcha-token">
+
+            <p>{{ form.submit_btn(type="submit", class="btn btn-primary", id="submit_btn") }}</p>
             {% if email_status %}
                 <div class="alert alert-info">
                     {{ email_status }}
@@ -83,5 +92,19 @@
             {% endif %}
         </form>
     </div>
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js?render={{ RECAPTCHA_SITE_KEY }}"></script>
+    <script>
+        document.getElementById('register-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            grecaptcha.ready(function() {
+                grecaptcha.execute('{{ RECAPTCHA_SITE_KEY }}', {action: 'register'})
+                    .then(function(token) {
+                        document.getElementById('recaptcha-token').value = token;
+                        document.getElementById('register-form').submit();
+                    });
+            });
+        });
+    </script>
     <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
 {% endblock %}

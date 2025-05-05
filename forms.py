@@ -23,30 +23,9 @@ class RegisterForm(FlaskForm):
     verify_code_field = StringField("* Подтверждение почты", validators=[DataRequired()], render_kw={"autocomplete": "off"})
     send_verify_code = SubmitField("Отправить код")
 
-    submit = SubmitField("Зарегистрироваться")
+    submit_btn = SubmitField("Зарегистрироваться")
 
     verify_code = None
-
-    def validate_send_verify_code(self, field):
-        if self.email.data and field.data:
-            db_sess = db_session.create_session()
-            verify_code_generated = str(random.randint(10000000000000000000000,
-                                                       99999999999999999999999))
-
-            verify_code = db_sess.query(VerifyCode).filter(VerifyCode.email == self.email.data).first()
-            if not verify_code:
-                verify_code = VerifyCode(
-                    email=self.email.data,
-                    subject="register"
-                )
-                verify_code.set_verify_code(verify_code_generated)
-                db_sess.add(verify_code)
-            else:
-                verify_code.set_verify_code(verify_code_generated)
-                verify_code.update('register')
-
-            db_sess.commit()
-            send_email(self.email.data, "verify_email", verify_code_generated)
 
     def code_verified(self):
         db_sess = db_session.create_session()
@@ -78,33 +57,12 @@ class ChangePasswordForm(FlaskForm):
     send_verify_code = SubmitField("Отправить код")
     question1 = BooleanField("Ты не мошенник?", validators=[DataRequired()])
     question2 = BooleanField("Ты запомнил пароль?", validators=[DataRequired()])
-    submit = SubmitField("Сохранить изменения")
+    submit_btn = SubmitField("Сохранить изменения")
     verify_code = None
 
     def __init__(self, email):
         super().__init__()
         self.email = email
-
-    def validate_send_verify_code(self, field):
-        if field.data:
-            db_sess = db_session.create_session()
-            verify_code_generated = str(random.randint(10000000000000000000000,
-                                                       99999999999999999999999))
-
-            verify_code = db_sess.query(VerifyCode).filter(user_email == self.email).first()
-            if not verify_code:
-                verify_code = VerifyCode(
-                    email=self.email,
-                    subject="change_password"
-                )
-                db_sess.add(verify_code)
-                verify_code.set_verify_code(verify_code_generated)
-            else:
-                verify_code.set_verify_code(verify_code_generated)
-                verify_code.update('change_password')
-
-            db_sess.commit()
-            send_email(self.email, "change_password", verify_code_generated)
 
     def code_verified(self):
         db_sess = db_session.create_session()
@@ -122,26 +80,7 @@ class ForgotPasswordForm(FlaskForm):
     question1 = BooleanField("Ты не мошенник?", validators=[DataRequired()])
     question2 = BooleanField("Ты запомнил пароль?", validators=[DataRequired()])
 
-    submit = SubmitField("Восстановить пароль")
-
-    def validate_send_verify_code(self, field):
-        if field.data and self.email.data:
-            db_sess = db_session.create_session()
-            verify_code_generated = str(random.randint(10000000000000000000000,
-                                                       99999999999999999999999))
-
-            verify_code = db_sess.query(VerifyCode).filter(VerifyCode.email == self.email.data).first()
-            if not verify_code:
-                verify_code = VerifyCode(
-                    email=self.email.data,
-                    subject="forgot_password"
-                )
-            else:
-                verify_code.set_verify_code(verify_code_generated)
-                verify_code.update('forgot_password')
-
-            db_sess.commit()
-            send_email(self.email.data, "forgot_password", verify_code_generated)
+    submit_btn = SubmitField("Восстановить пароль")
 
     def code_verified(self):
         db_sess = db_session.create_session()

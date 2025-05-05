@@ -1,6 +1,7 @@
 import datetime
 import os
 import random
+import re
 import smtplib
 import socket
 from email.message import EmailMessage
@@ -50,6 +51,10 @@ def get_plain_text(verification_code, subject):
     """
 
 
+def check_email(email: str) -> bool:
+    return re.match(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', email) is not None
+
+
 def send_email(email_receiver: str, subject: str, verification_code: str) -> bool:
     """
     Отправляет электронное письмо с использованием случайного отправителя из SENDERS.
@@ -62,6 +67,9 @@ def send_email(email_receiver: str, subject: str, verification_code: str) -> boo
     Returns:
         bool: True если отправка успешна, иначе False
     """
+
+    if not check_email(email_receiver):
+        raise ValueError(f"Invalid email: {email_receiver}")
 
     if subject not in TEMPLATES:
         raise ValueError(f"Unknown subject type: {subject}")

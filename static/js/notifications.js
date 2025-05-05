@@ -1,10 +1,10 @@
-function showNotification(message) {
+function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.style.margin = '10px auto';
     notification.style.width = 'fit-content';
     notification.style.maxWidth = '80%';
 
-    notification.className = 'alert alert-success fixed-top text-center notification';
+    notification.className = `alert fixed-top text-center notification alert-${type}`;
     notification.textContent = message;
 
     document.body.appendChild(notification);
@@ -25,11 +25,44 @@ document.addEventListener('DOMContentLoaded', function() {
     const verifyButton = document.getElementById('send_verify_code');
     if (verifyButton) {
         verifyButton.addEventListener('click', function() {
-            const emailField = document.querySelector('input[name="email"]');
-            if (!emailField || !emailField.value.trim()) {
-                return;
+            // Find the closest form and get the email field
+            const form = verifyButton.closest('form');
+            let subject = 'verify_email';
+            if (window.location.pathname.includes('change_password')) {
+                subject = 'change_password';
+            } else if (window.location.pathname.includes('forgot_password')) {
+                subject = 'forgot_password';
             }
-            showNotification('Код отправлен');
+            let email = null;
+            if (subject !== 'change_password') {
+                let emailField = form.querySelector('input[name="email"]');
+                email = emailField ? emailField.value.trim() : null;
+                if (!email && form.dataset.email) {
+                    email = form.dataset.email;
+                }
+                if (!email) {
+                    showNotification('Введите email для отправки кода', 'danger');
+                    return;
+                }
+            }
+            fetch('/send_verify_code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: email, subject: subject })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Код отправлен', 'success');
+                } else {
+                    showNotification('Ошибка: ' + data.message, 'danger');
+                }
+            })
+            .catch(() => {
+                showNotification('Ошибка при отправке кода', 'danger');
+            });
         });
     }
 });

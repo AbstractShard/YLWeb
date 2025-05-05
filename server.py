@@ -1,29 +1,90 @@
 import datetime
+import requests
 
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, redirect, request, jsonify
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
 from flask_restful import Api
 
 from db_related.data.message import Message
 from forms import RegisterForm, LoginForm, ProfileForm, ChangePasswordForm, ForgotPasswordForm, EditProjectForm
+from db_related.data.verify_cods import VerifyCode, send_email
+from db_related.data import db_session
+import random
 
 from db_related.data import db_session, users_resources, verify_cods_resources
 from db_related.data.users import User
 from db_related.data.projects import Project
+from dotenv import load_dotenv
+import os
 
 import consts
 from consts import check_buffer, project_to_dict, check_zip
 
 
-PROJECT_TYPES = ['Home', 'Most-liked', 'Recent']
+load_dotenv('static/.env')
+
+HCAPTCHA_SITE_KEY = os.getenv('HCAPTCHA_SITE_KEY')
+HCAPTCHA_SECRET_KEY = os.getenv('HCAPTCHA_SECRET_KEY')
+RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY')
+RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY')
+PROJECT_TYPES = ['Continue', 'Most-liked', 'Recent']
 
 app = Flask(__name__)
 api = Api(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-app.config['SECRET_KEY'] = 'qwerty_secret_12345'
+app.config['SECRET_KEY'] = HCAPTCHA_SECRET_KEY
 
+def verify_recaptcha(token, action):
+    """Verify reCAPTCHA v3 token and return (success, message) tuple."""
+    if not token:
+        return False, "reCaptcha не пройдена."
+        
+    data = {
+        'secret': RECAPTCHA_SECRET_KEY,
+        'response': token
+    }
+    
+    try:
+        recaptcha_result = requests.post('https://www.google.com/recaptcha/api/siteverify', 
+                                       data=data, 
+                                       timeout=5).json()
+        
+        if not recaptcha_result.get('success'):
+            return False, "reCaptcha не прошла."
+            
+        if recaptcha_result.get('action') != action:
+            return False, "Неверное действие reCaptcha."
+            
+        if recaptcha_result.get('score', 0) < 0.5:
+            return False, f"reCaptcha не прошла, {1 - recaptcha_result.get('score', 0)}% бота."
+            
+        return True, None
+    except requests.RequestException as e:
+        return False, f"Ошибка при проверке reCaptcha: {str(e)}"
+
+def verify_hcaptcha(response):
+    """Verify hCaptcha response and return (success, message) tuple."""
+    if not response:
+        return False, "Капча не пройдена."
+        
+    data = {
+        'secret': HCAPTCHA_SECRET_KEY,
+        'response': response
+    }
+    
+    try:
+        hcaptcha_result = requests.post('https://hcaptcha.com/siteverify', 
+                                      data=data, 
+                                      timeout=5).json()
+        
+        if not hcaptcha_result.get('success'):
+            return False, "hCaptcha не прошла."
+            
+        return True, None
+    except requests.RequestException as e:
+        return False, f"Ошибка при проверке hCaptcha: {str(e)}"
 
 @app.errorhandler(400)
 def bad_request(error):
@@ -73,7 +134,7 @@ def not_found(error):
 @check_buffer
 def index():
     projects = {
-        "Home": ['!add_project', ..., ...],
+        "Continue": ['!add_project', ..., ...],
         "Most-liked": [..., ..., ..., ...],
         "Recent": [..., ..., ..., ..., ...]
     }
@@ -83,6 +144,7 @@ def index():
         "project_types": PROJECT_TYPES,
         "projects": projects
     }
+    
     return render_template(**template_params)
 
 
@@ -93,15 +155,36 @@ def register():
     template_params = {
         "template_name_or_list": "register.html",
         "title": "Регистрация",
-        "form": form
+        "form": form,
+        "HCAPTCHA_SITE_KEY": HCAPTCHA_SITE_KEY,
+        "RECAPTCHA_SITE_KEY": RECAPTCHA_SITE_KEY
     }
 
     if form.validate_on_submit():
+        # Проверка паролей
         if form.password.data != form.password_again.data:
             return render_template(message="Пароли не совпадают.", **template_params)
-
+        
+        # Проверка верификационного кода
         if not form.code_verified():
             return render_template(message=f"Код не тот.", **template_params)
+
+
+        # Проверка reCaptcha
+        recaptcha_success, recaptcha_message = verify_recaptcha(
+            request.form.get('recaptcha-token'),
+            'register'
+        )
+        if not recaptcha_success:
+            return render_template(message=recaptcha_message, **template_params)
+        
+        # Проверка hCaptcha
+        hcaptcha_success, hcaptcha_message = verify_hcaptcha(
+            request.form.get('h-captcha-response')
+        )
+        if not hcaptcha_success:
+            return render_template(message=hcaptcha_message, **template_params)
+        
 
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.email == form.email.data).first():
@@ -111,13 +194,12 @@ def register():
                     email=form.email.data)
 
         user.set_default_img()
-
         user.set_password(form.password.data)
 
         db_sess.add(user)
         db_sess.commit()
 
-        return redirect("/")
+        return redirect("/login")
 
     return render_template(**template_params)
 
@@ -200,12 +282,21 @@ def change_password():
     template_params = {
         "template_name_or_list": "change_password.html",
         "title": "Изменить пароль",
-        "form": form
+        "form": form,
+        "RECAPTCHA_SITE_KEY": RECAPTCHA_SITE_KEY
     }
 
     if form.validate_on_submit():
+        # Проверка верификационного кода
         if not form.code_verified():
             return render_template(message=f"Код не тот.{form.verify_code}", **template_params)
+
+        recaptcha_success, recaptcha_message = verify_recaptcha(
+            request.form.get('recaptcha-token'),
+            'change_password'
+        )
+        if not recaptcha_success:
+            return render_template(message=recaptcha_message, **template_params)
 
         current_user.set_password(form.new_password.data)
 
@@ -226,19 +317,29 @@ def forgot_password():
     template_params = {
         "template_name_or_list": "forgot_password.html",
         "title": "Забыл пароль",
-        "form": form
+        "form": form,
+        "RECAPTCHA_SITE_KEY": RECAPTCHA_SITE_KEY
     }
 
     if form.validate_on_submit():
+        # Проверка верификационного кода
         if not form.code_verified():
             return render_template(message=f"Код не тот.", **template_params)
+
+        # Проверка reCaptcha
+        recaptcha_success, recaptcha_message = verify_recaptcha(
+            request.form.get('recaptcha-token'),
+            'forgot_password'
+        )
+        if not recaptcha_success:
+            return render_template(message=recaptcha_message, **template_params)
 
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.email == form.email.data).first()
         if not user:
             return render_template(message="Такого пользователя нет.", **template_params)
 
-        user.set_password(form.new_password.data)
+        user.set_password(form.new_password.data)   
         db_sess.merge(user)
         db_sess.commit()
 
@@ -470,6 +571,46 @@ def delete_project(id: int):
 def load_user(user_id: int) -> User:
     db_sess = db_session.create_session()
     return db_sess.query(User).get(user_id)
+
+
+@app.route("/send_verify_code", methods=["POST"])
+def send_verify_code():
+    data = request.get_json()
+    email = data.get("email")
+    subject = data.get("subject")
+    if not subject:
+        return jsonify({"success": False, "message": "Subject is required."}), 400
+
+    # For change_password, require login and use current_user.email
+    if subject == "change_password":
+        if not current_user.is_authenticated:
+            return jsonify({"success": False, "message": "Authentication required."}), 401
+        email = current_user.email
+    if not email:
+        return jsonify({"success": False, "message": "Email is required."}), 400
+
+
+    db_sess = db_session.create_session()
+    verify_code_generated = str(random.randint(10000000000000000000000, 99999999999999999999999))
+
+    verify_code = db_sess.query(VerifyCode).filter(VerifyCode.email == email).first()
+    if not verify_code:
+        verify_code = VerifyCode(
+            email=email,
+            subject=subject
+        )
+        db_sess.add(verify_code)
+        verify_code.set_verify_code(verify_code_generated)
+    else:
+        verify_code.set_verify_code(verify_code_generated)
+        verify_code.update(subject)
+
+    db_sess.commit()
+    try:
+        send_email(email, subject, verify_code_generated)
+    except ValueError as e:
+        return jsonify({"success": False, "message": f"Error sending email: {str(e)}"}), 500
+    return jsonify({"success": True, "message": "Verification code sent."})
 
 
 def main():
