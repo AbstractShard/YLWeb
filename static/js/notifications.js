@@ -32,16 +32,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 subject = 'change_password';
             } else if (window.location.pathname.includes('forgot_password')) {
                 subject = 'forgot_password';
+            } else if (window.location.pathname.includes('register')) {
+                subject = 'register';
             }
             let email = null;
-            if (subject !== 'change_password') {
+            if (subject !== 'forgot_password') {
                 let emailField = form.querySelector('input[name="email"]');
                 email = emailField ? emailField.value.trim() : null;
                 if (!email && form.dataset.email) {
                     email = form.dataset.email;
                 }
                 if (!email) {
-                    showNotification('Введите email для отправки кода', 'danger');
+                    showNotification('email не указан', 'danger');
                     return;
                 }
             }

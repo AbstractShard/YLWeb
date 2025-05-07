@@ -1,8 +1,11 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, redirect
 from flask_login import login_required, current_user
 from db_related.data import db_session
 from db_related.data.users import User
+from db_related.data.message import Message
 from consts import check_buffer
+from consts import PROJECT_TYPES
+import datetime
 
 # Initialize blueprint
 main_bp = Blueprint('main', __name__)
@@ -11,43 +14,101 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route("/")
 @check_buffer
 def index():
-    return render_template("index.html", title="Главная")
-
-@main_bp.route("/about")
-@check_buffer
-def about():
-    return render_template("about.html", title="О нас")
-
-@main_bp.route("/contact")
-@check_buffer
-def contact():
-    return render_template("contact.html", title="Контакты")
-
-@main_bp.route("/search")
-@check_buffer
-def search():
-    query = request.args.get('q', '')
-    if not query:
-        return render_template("search.html", title="Поиск", results=[])
+    projects = {
+        "Continue": ['!add_project', ..., ...],
+        "Most-liked": [..., ..., ..., ...],
+        "Recent": [..., ..., ..., ..., ...]
+    }
+    template_params = {
+        "template_name_or_list": 'index.html',
+        "title": 'UltimateUnity',
+        "project_types": PROJECT_TYPES,
+        "projects": projects
+    }
     
+    return render_template(**template_params)
+
+@main_bp.route('/currency', methods=['GET', 'POST'])
+@check_buffer
+def currency():
+    balance = current_user.balance
+
+    price = [
+        {"Цена": '500₽', "GEFs": 250},
+        {"Цена": '1000₽', "GEFs": 500},
+        {"Цена": '2000₽', "GEFs": 1000},
+        {"Цена": '5000₽', "GEFs": 2500},
+        {"Цена": '10000₽', "GEFs": 5000},
+        {"Цена": '15000₽', "GEFs": 7500},
+        {"Цена": '20000₽', "GEFs": 10000},
+        {"Цена": '25000₽', "GEFs": 12500},
+        {"Цена": '30000₽', "GEFs": 15000}
+    ]
+
+    if request.method == 'POST':
+        button_name = request.form['button']
+
+        db_sess = db_session.create_session()
+        balance += [i["GEFs"] for i in price if i["Цена"] == button_name][0]
+        current_user.balance = balance
+        db_sess.merge(current_user)
+        operation = Message(user=current_user.id, name='Покупка', data=datetime.datetime.now().strftime("%d.%m.%Y %H:%M"), readability=False,
+                            sender='UltimateUnity', recipient=current_user.name, suma=button_name,
+                            about=f'Вам начислено {[i["GEFs"] for i in price if i["Цена"] == button_name][0]} GEF')
+        db_sess.add(operation)
+        db_sess.commit()
+
+        template_params = {
+            "template_name_or_list": "buy.html",
+            "title": "Оплата",
+            "price": button_name[:-1]
+        }
+
+        return render_template(**template_params)
+
+    transactions = []
     db_sess = db_session.create_session()
-    users = db_sess.query(User).filter(User.name.ilike(f'%{query}%')).all()
-    
-    return render_template("search.html", title="Поиск", results=users)
+    messages_db = db_sess.query(Message).filter(Message.user == current_user.id).all()
+    for i in messages_db:
+        if i.suma:
+            transactions.append({"Время": i.data,
+                                 "Сумма": i.suma,
+                                 "Отправитель": i.sender,
+                                 "Получатель": i.recipient})
 
-@main_bp.route("/api/user/<int:user_id>")
-@login_required
+    template_params = {
+        "template_name_or_list": "currency.html",
+        "title": "Валюта",
+        "balance": balance,
+        "price": price,
+        "transactions": transactions
+    }
+    return render_template(**template_params)
+
+@main_bp.route('/message')
 @check_buffer
-def get_user(user_id):
+def message():
+    messages = []
     db_sess = db_session.create_session()
-    user = db_sess.query(User).filter(User.id == user_id).first()
-    
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    
-    return jsonify({
-        "id": user.id,
-        "name": user.name,
-        "email": user.email,
-        "created_date": user.created_date.isoformat()
-    }) 
+    messages_db = db_sess.query(Message).filter(Message.user == current_user.id).all()
+    news = 0
+    for i in messages_db:
+        messages.append({"Дата": i.data,
+                         "Заголовок": i.name,
+                         "Описание": i.about,
+                         "Прочитанность": i.readability, })
+        if not i.readability:
+            news += 1
+
+    template_params = {
+        "template_name_or_list": "message.html",
+        "title": "Уведомления",
+        "messages": reversed(messages),
+        "news": news
+    }
+
+    for i in messages_db:
+        i.readability = True
+    db_sess.commit()
+    return render_template(**template_params)
+

@@ -29,9 +29,9 @@ else:
 
 
 TEMPLATES = {
-    "verify_email": "Регистрация",
     "change_password": "Смена пароля",
-    "forgot_password": "Восстановление пароля"
+    "forgot_password": "Восстановление пароля",
+    "register": "Регистрация"
 }
 
 MAX_RETRIES = 3

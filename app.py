@@ -75,11 +75,10 @@ def load_user(user_id: int) -> User:
 # API resources
 api.add_resource(users_resources.UsersListResource, '/api/users')
 api.add_resource(users_resources.UsersResource, '/api/users/<int:user_id>')
-api.add_resource(verify_cods_resources.VerifyCodeListResource, '/api/verify_codes')
 api.add_resource(verify_cods_resources.VerifyCodeResource, '/api/verify_codes/<int:code_id>')
 
 def main():
-    db_session.global_init("db_related/db/ultimate_unity.db")
+    db_session.global_init("db_related/db/db.db")
     app.run(debug=True)
 
 if __name__ == '__main__':

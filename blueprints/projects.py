@@ -1,9 +1,9 @@
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for
+from flask import Blueprint, render_template, request, redirect
 from flask_login import login_required, current_user
 from db_related.data import db_session
 from db_related.data.projects import Project
-from db_related.data.users import User
-from consts import check_buffer
+from forms import EditProjectForm
+from consts import check_buffer, project_to_dict, check_zip
 
 # Initialize blueprint
 projects_bp = Blueprint('projects', __name__)
@@ -16,92 +16,134 @@ def projects_list():
     projects = db_sess.query(Project).all()
     return render_template("projects/list.html", title="Проекты", projects=projects)
 
-@projects_bp.route("/projects/<int:project_id>")
-@check_buffer
-def project_detail(project_id):
-    db_sess = db_session.create_session()
-    project = db_sess.query(Project).filter(Project.id == project_id).first()
-    
-    if not project:
-        return redirect(url_for('projects.projects_list'))
-    
-    return render_template("projects/detail.html", title=project.name, project=project)
-
-@projects_bp.route("/projects/create", methods=["GET", "POST"])
+@projects_bp.route("/add_project", methods=["GET", "POST"])
 @login_required
 @check_buffer
-def project_create():
-    if request.method == "POST":
-        name = request.form.get('name')
-        description = request.form.get('description')
-        
-        if not name:
-            return render_template("projects/create.html", title="Создать проект", 
-                                 error="Название проекта обязательно")
-        
+def add_project():
+    form = EditProjectForm()
+
+    template_params = {
+        "template_name_or_list": "edit_project.html",
+        "title": "Добавление проекта",
+        "action": "Добавление",
+        "form": form
+    }
+
+    if form.validate_on_submit():
         db_sess = db_session.create_session()
-        project = Project(
-            name=name,
-            description=description,
-            creator_id=current_user.id
-        )
-        
-        db_sess.add(project)
-        db_sess.commit()
-        
-        return redirect(url_for('projects.project_detail', project_id=project.id))
-    
-    return render_template("projects/create.html", title="Создать проект")
+        project = Project(name=form.name.data, description=form.description.data, price=form.price.data)
 
-@projects_bp.route("/projects/<int:project_id>/edit", methods=["GET", "POST"])
+        if not (imgs := form.imgs.data.read()):
+            return render_template(message="У проекта нет изображений", **template_params)
+        elif not check_zip(imgs):
+            return render_template(message="Изображения - не ZIP-файл", **template_params)
+
+        if not (files := form.files.data.read()):
+            return render_template(message="А где собственно, сами файлы проекта?", **template_params)
+        elif not check_zip(files):
+            return render_template(message="Файлы проекта - не ZIP-файл", **template_params)
+
+        project.imgs = imgs
+        project.files = files
+
+        current_user.created_projects.append(project)
+
+        db_sess.merge(current_user)
+        db_sess.commit()
+
+        return redirect("/current_projects")
+
+    return render_template(**template_params)
+
+
+@projects_bp.route("/current_projects")
 @login_required
 @check_buffer
-def project_edit(project_id):
+def current_projects():
     db_sess = db_session.create_session()
-    project = db_sess.query(Project).filter(Project.id == project_id).first()
-    
-    if not project or project.creator_id != current_user.id:
-        return redirect(url_for('projects.projects_list'))
-    
-    if request.method == "POST":
-        name = request.form.get('name')
-        description = request.form.get('description')
-        
-        if not name:
-            return render_template("projects/edit.html", title="Редактировать проект",
-                                 project=project, error="Название проекта обязательно")
-        
-        project.name = name
-        project.description = description
-        db_sess.commit()
-        
-        return redirect(url_for('projects.project_detail', project_id=project.id))
-    
-    return render_template("projects/edit.html", title="Редактировать проект", project=project)
+    projects = db_sess.query(Project).filter(Project.created_by_user == current_user)
 
-@projects_bp.route("/projects/<int:project_id>/delete", methods=["POST"])
+    user_projects = []
+    for proj in projects:
+        user_projects.append(project_to_dict(proj))
+
+    template_params = {
+        "template_name_or_list": "user_projects.html",
+        "title": "Проекты",
+        "projects": user_projects
+    }
+
+    return render_template(**template_params)
+
+
+@projects_bp.route("/edit_project/<int:id>", methods=["GET", "POST"])
 @login_required
 @check_buffer
-def project_delete(project_id):
-    db_sess = db_session.create_session()
-    project = db_sess.query(Project).filter(Project.id == project_id).first()
-    
-    if project and project.creator_id == current_user.id:
-        db_sess.delete(project)
-        db_sess.commit()
-    
-    return redirect(url_for('projects.projects_list'))
+def edit_project(id: int):
+    form = EditProjectForm()
 
-@projects_bp.route("/api/projects")
-@check_buffer
-def api_projects_list():
     db_sess = db_session.create_session()
-    projects = db_sess.query(Project).all()
-    
-    return jsonify([{
-        "id": p.id,
-        "name": p.name,
-        "description": p.description,
-        "creator_id": p.creator_id,
-        "created_date": p.created_date.isoformat()
-    } for p in projects]) 
+    project = db_sess.query(Project).filter(Project.id == id, Project.created_by_user == current_user).first()
+
+    template_params = {
+        "template_name_or_list": "edit_project.html",
+        "title": "Редактирование проекта",
+        "action": "Редактирование",
+        "project": project,
+        "form": form
+    }
+
+    if request.method == "GET":
+        form.name.data = project.name
+        form.description.data = project.description
+        form.price.data = project.price
+
+    if form.validate_on_submit():
+        project.name = form.name.data
+        project.description = form.description.data
+        project.price = form.price.data
+
+        if (imgs := form.imgs.data.read()) != project.imgs:
+            if check_zip(imgs):
+                project.imgs = imgs
+            else:
+                return render_template(message="Изображения - не ZIP-файл", **template_params)
+
+        if (files := form.files.data.read()) != project.files:
+            if check_zip(files):
+                project.files = files
+            else:
+                return render_template(message="Файлы проекта - не ZIP-файл", **template_params)
+
+        db_sess.commit()
+
+        return redirect("/current_projects")
+
+    return render_template(**template_params)
+
+
+@projects_bp.route("/project_info/<int:id>", methods=["GET", "POST"])
+@check_buffer
+def project_info(id: int):
+    db_sess = db_session.create_session()
+    project = db_sess.query(Project).filter(Project.id == id).first()
+
+    template_params = {
+        "template_name_or_list": "project_info.html",
+        "title": project.name,
+        "project": project_to_dict(project)
+    }
+    return render_template(**template_params)
+
+
+@projects_bp.route("/delete_project/<int:id>")
+@login_required
+@check_buffer
+def delete_project(id: int):
+    db_sess = db_session.create_session()
+    project = db_sess.query(Project).filter(Project.id == id, Project.created_by_user == current_user).first()
+
+    db_sess.delete(project)
+    db_sess.commit()
+
+    return redirect("/current_projects")

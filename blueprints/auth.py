@@ -184,21 +184,30 @@ def forgot_password():
 @auth_bp.route("/send_verify_code", methods=["POST"])
 def send_verify_code():
     email = request.json.get('email')
-    if not email:
+    subject = request.json.get('subject')
+
+    if not email and subject != 'change_password':
         return jsonify({"success": False, "message": "Email не указан"})
     
     db_sess = db_session.create_session()
-    user = db_sess.query(User).filter(User.email == email).first()
     
-    if not user:
-        return jsonify({"success": False, "message": "Пользователь не найден"})
+    if subject != 'register' and subject != 'forgot_password':
+        user = db_sess.query(User).filter(User.email == email).first()
+        
+        if not user:
+            return jsonify({"success": False, "message": "Пользователь не найден"})
     
-    code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
-    verify_code = VerifyCode(user_id=user.id, code=code)
+    old_verify_code = db_sess.query(VerifyCode).filter(VerifyCode.email == email, VerifyCode.subject == subject).first()
+    if old_verify_code:
+        db_sess.delete(old_verify_code)
+    
+    code = ''.join([str(random.randint(0, 9)) for _ in range(20)])
+    verify_code = VerifyCode(email=email, subject=subject)
+    verify_code.set_verify_code(code)
     
     db_sess.add(verify_code)
     db_sess.commit()
     
-    send_email(email, code)
+    send_email(email, subject, code)
     
     return jsonify({"success": True}) 
