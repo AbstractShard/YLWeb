@@ -17,6 +17,7 @@ HCAPTCHA_SITE_KEY = os.getenv('HCAPTCHA_SITE_KEY')
 HCAPTCHA_SECRET_KEY = os.getenv('HCAPTCHA_SECRET_KEY')
 RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY')
 RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY')
+APP_SECRET_KEY = os.getenv('APP_SECRET_KEY')
 PROJECT_TYPES = ['Continue', 'Most-liked', 'Recent']
 
 def verify_captcha(token, action=None, captcha_type='recaptcha'):

@@ -23,7 +23,6 @@ def register():
         "title": "Регистрация",
         "form": form,
         "HCAPTCHA_SITE_KEY": consts.HCAPTCHA_SITE_KEY,
-        "RECAPTCHA_SITE_KEY": consts.RECAPTCHA_SITE_KEY
     }
 
     if form.validate_on_submit():
@@ -35,15 +34,6 @@ def register():
         if not form.code_verified():
             return render_template(message=f"Код не тот.", **template_params)
 
-        # reCaptcha check
-        recaptcha_success, recaptcha_message = verify_captcha(
-            request.form.get('recaptcha-token'),
-            action='register',
-            captcha_type='recaptcha'
-        )
-        if not recaptcha_success:
-            return render_template(message=recaptcha_message, **template_params)
-        
         # hCaptcha check
         hcaptcha_success, hcaptcha_message = verify_captcha(
             request.form.get('h-captcha-response'),

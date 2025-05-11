@@ -19,7 +19,7 @@ app = Flask(__name__)
 api = Api(app)
 
 # Configure app
-app.config['SECRET_KEY'] = consts.HCAPTCHA_SECRET_KEY
+app.config['SECRET_KEY'] = consts.APP_SECRET_KEY
 
 # Initialize login manager
 login_manager = LoginManager()
