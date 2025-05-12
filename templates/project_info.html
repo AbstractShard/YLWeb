@@ -30,4 +30,10 @@
     <p>{{ project["description"] }}</p>
 
     <p>{{ project["created_date"] }}</p>
+
+    {% if project_download %}
+        <a class="btn btn-success" href="../static/buffer/projects/{{ project['id'] }}/project_files" download="{{ project['name'] }}.zip">Скачать проект</a>
+    {% else %}
+        <form method="post"><button class="btn btn-primary">Купить за {{ project["price"] }}GEF's</button></form>
+    {% endif %}
 {% endblock %}

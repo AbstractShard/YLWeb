@@ -20,6 +20,7 @@ RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY')
 APP_SECRET_KEY = os.getenv('APP_SECRET_KEY')
 PROJECT_TYPES = ['Continue', 'Most-liked', 'Recent']
 
+
 def verify_captcha(token, action=None, captcha_type='recaptcha'):
     """Verify reCAPTCHA v3 or hCaptcha token and return (success, message) tuple.
     
@@ -64,6 +65,7 @@ def verify_captcha(token, action=None, captcha_type='recaptcha'):
     except requests.RequestException as e:
         return False, f"Ошибка при проверке {captcha_type}: {str(e)}"
 
+
 def check_buffer(func):
     @wraps(func)
     def body(*args, **kwargs):
@@ -80,14 +82,21 @@ def check_buffer(func):
         if not os.path.exists("static/buffer/projects"):
             os.mkdir("static/buffer/projects")
 
-        for curr_dir, _, files in os.walk(PROJECTS_PATH):
-            for filename in files:
-                if not filename.endswith(".zip"):
-                    os.remove(f"{curr_dir}/{filename}")
-
         return func(*args, **kwargs)
 
     return body
+
+
+def check_project_dir(func):
+    @wraps(func)
+    def body(project: Project):
+        if not os.path.exists(f"{PROJECTS_PATH}/{project.id}"):
+            os.mkdir(f"{PROJECTS_PATH}/{project.id}")
+
+        return func(project)
+
+    return body
+
 
 def check_zip(data) -> bool:
     placeholder_path = f"{PROJECTS_PATH}/placeholder.zip"
@@ -100,25 +109,31 @@ def check_zip(data) -> bool:
 
     return res
 
+
+@check_project_dir
 def extract_project_imgs(project: Project):
     project_dir = f"{PROJECTS_PATH}/{project.id}"
     zip_dir = f"{project_dir}/project_imgs.zip"
-
-    if not os.path.exists(project_dir):
-        os.mkdir(project_dir)
 
     with open(zip_dir, mode="wb") as project_imgs:
         project_imgs.write(project.imgs)
 
     with ZipFile(zip_dir) as my_zip:
-        my_zip.extractall(project_dir)
+        for img_name in my_zip.namelist():
+            if img_name not in os.listdir(project_dir):
+                my_zip.extract(img_name, path=project_dir)
 
     os.remove(zip_dir)
 
-def add_project_files(project: Project):
-    with open(f"{PROJECTS_PATH}/{project.id}/project_files.zip", mode="wb") as project_files:
-        project_files.write(project.files)
 
+@check_project_dir
+def add_project_files(project: Project):
+    if "project_files.zip" not in os.listdir(project_dir := f"{PROJECTS_PATH}/{project.id}"):
+        with open(f"{project_dir}/project_files.zip", mode="wb") as project_files:
+            project_files.write(project.files)
+
+
+@check_project_dir
 def project_to_dict(project: Project) -> dict:
     extract_project_imgs(project)
 
@@ -128,6 +143,7 @@ def project_to_dict(project: Project) -> dict:
         "description": project.description,
         "price": project.price,
         "created_date": project.created_date,
-        "imgs": list(map(lambda x: f"../{PROJECTS_PATH}/{project.id}/{x}", os.listdir(f"{PROJECTS_PATH}/{project.id}")))
+        "imgs": list(map(lambda y: f"../{PROJECTS_PATH}/{project.id}/{y}",
+                         filter(lambda x: not x.endswith(".zip"), os.listdir(f"{PROJECTS_PATH}/{project.id}"))))
     }
     return res

@@ -93,6 +93,7 @@ def logout():
 @check_buffer
 def profile():
     form = ProfileForm()
+
     template_params = {
         "template_name_or_list": "profile.html",
         "title": "Профиль",
@@ -101,18 +102,22 @@ def profile():
 
     if request.method == "GET":
         form.name.data = current_user.name
-        form.email.data = current_user.email
-    
+        form.about.data = current_user.about
+
     if form.validate_on_submit():
+        current_user.name = form.name.data
+        current_user.about = form.about.data
+
+        if img_data := form.img.data.read():
+            current_user.img = img_data
+
+            with open(consts.CURRENT_PROFILE_PATH, mode="wb") as curr_img:
+                curr_img.write(current_user.img)
+
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.id == current_user.id).first()
-        
-        if user:
-            user.name = form.name.data
-            user.email = form.email.data
-            db_sess.commit()
-            return redirect('/profile')
-    
+        db_sess.merge(current_user)
+        db_sess.commit()
+
     return render_template(**template_params)
 
 @auth_bp.route("/change_password", methods=["GET", "POST"])

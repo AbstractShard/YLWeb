@@ -1,2 +1,3 @@
 static/.env
+static/buffer
 db_related/db/db.db

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, LargeBinary
+from sqlalchemy import Column, Integer, String, LargeBinary, ForeignKey
 from sqlalchemy_serializer import SerializerMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
@@ -24,6 +24,9 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     # Для проектов
     created_projects = orm.relationship("Project", back_populates="created_by_user", foreign_keys="Project.created_by_user_id")
+
+    purchased_projects_id = Column(Integer, ForeignKey("projects.id"))
+    purchased_projects = orm.relationship("Project", foreign_keys=[purchased_projects_id], uselist=True)
 
     def set_password(self, password: str):
         self.hashed_password = generate_password_hash(password)
