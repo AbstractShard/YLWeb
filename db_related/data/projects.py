@@ -19,4 +19,4 @@ class Project(SqlAlchemyBase):
     imgs = Column(LargeBinary, nullable=False)
 
     created_by_user_id = Column(Integer, ForeignKey("users.id"))
-    created_by_user = orm.relationship("User", foreign_keys=[created_by_user_id])
+    created_by_user = orm.relationship("User", foreign_keys=[created_by_user_id], back_populates="created_projects")

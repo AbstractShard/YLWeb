@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, abort
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user, AnonymousUserMixin
 from db_related.data import db_session
 from db_related.data.projects import Project
 from forms import EditProjectForm
@@ -131,17 +131,20 @@ def project_info(id: int):
     if not project:
         abort(404)
 
-    project_download = True if (project.id in [proj.id for proj in current_user.created_projects] or
-                                project.id in [proj.id for proj in current_user.purchased_projects]) else False
-
-    if project_download:
-        add_project_files(project)
+    project_btn = "login"
+    if not isinstance(current_user, AnonymousUserMixin):
+        if (project.id in [proj.id for proj in current_user.created_projects] or
+                project.id in [proj.id for proj in current_user.purchased_projects]):
+            project_btn = "download"
+        else:
+            project_btn = "buy"
 
     if request.method == "POST":
         if current_user.balance - project.price >= 0:
             current_user.balance -= project.price
             project.created_by_user.balance += project.price
 
+            # FIXME: Без понятия как это исправить
             current_user.purchased_projects.append(project)
 
             db_sess.merge(current_user)
@@ -153,7 +156,7 @@ def project_info(id: int):
         "template_name_or_list": "project_info.html",
         "title": project.name,
         "project": project_to_dict(project),
-        "project_download": project_download
+        "project_btn": project_btn
     }
 
     return render_template(**template_params)

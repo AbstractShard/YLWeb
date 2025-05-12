@@ -23,10 +23,10 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     hashed_password = Column(String, nullable=False)
 
     # Для проектов
-    created_projects = orm.relationship("Project", back_populates="created_by_user", foreign_keys="Project.created_by_user_id")
+    created_projects = orm.relationship("Project", back_populates="created_by_user", foreign_keys="Project.created_by_user_id", uselist=True)
 
-    purchased_projects_id = Column(Integer, ForeignKey("projects.id"))
-    purchased_projects = orm.relationship("Project", foreign_keys=[purchased_projects_id], uselist=True)
+    purchased_projects_ids = Column(Integer, ForeignKey("projects.id"))
+    purchased_projects = orm.relationship("Project", foreign_keys=[purchased_projects_ids], uselist=True)
 
     def set_password(self, password: str):
         self.hashed_password = generate_password_hash(password)

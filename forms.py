@@ -96,7 +96,7 @@ class EditProjectForm(FlaskForm):
 
     price = IntegerField("Цена")
 
-    imgs = FileField("* Изображения")
+    imgs = FileField("* ZIP-Файл с изображениями")
     files = FileField("* ZIP-Файл с проектом")
 
     submit = SubmitField("Сохранить изменения")

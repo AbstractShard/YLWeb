@@ -1,44 +1,72 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="all-projects">
-        {% for name in project_types %}
-            <div class="projects-block">
-                <h2>{{ name }}</h2>
-                <div class="projects">
-                    {% for project in projects[name] %}
-                        {% if project == '!add_project' %}
-                            <img src="../static/img/add_project.png" class="add-project" onclick="location.href='/add_project'"
-                                 title="Добавить проект" alt="Добавить проект">
-                        {% endif %}
-                        <div id="{{ name }}{{ loop.index }}" class="carousel slide" data-bs-ride="carousel"
-                             data-bs-interval="30000" data-bs-pause="hover">
+<!--    <div class="all-projects">-->
+<!--        {% for name in project_types %}-->
+<!--            <div class="projects-block">-->
+<!--                <h2>{{ name }}</h2>-->
+<!--                <div class="projects">-->
+<!--                    {% for project in projects[name] %}-->
+<!--                        {% if project == '!add_project' %}-->
+<!--                            <img src="../static/img/add_project.png" class="add-project" onclick="location.href='/add_project'"-->
+<!--                                 title="Добавить проект" alt="Добавить проект">-->
+<!--                        {% endif %}-->
+<!--                        <div id="{{ name }}{{ loop.index }}" class="carousel slide" data-bs-ride="carousel"-->
+<!--                             data-bs-interval="30000" data-bs-pause="hover">-->
 
-                            <!-- Слайды -->
-                            <div class="carousel-inner">
-                                <div class="carousel-item active">
-                                    <img src="../static/img/currency.png" class="d-block w-100">
-                                </div>
-                                <div class="carousel-item">
-                                    <img src="../static/img/currency.png" class="d-block w-100">
-                                </div>
-                                <div class="carousel-item">
-                                    <img src="../static/img/currency.png" class="d-block w-100">
-                                </div>
-                            </div>
+<!--                            &lt;!&ndash; Слайды &ndash;&gt;-->
+<!--                            <div class="carousel-inner">-->
+<!--                                <div class="carousel-item active">-->
+<!--                                    <img src="../static/img/currency.png" class="d-block w-100">-->
+<!--                                </div>-->
+<!--                                <div class="carousel-item">-->
+<!--                                    <img src="../static/img/currency.png" class="d-block w-100">-->
+<!--                                </div>-->
+<!--                                <div class="carousel-item">-->
+<!--                                    <img src="../static/img/currency.png" class="d-block w-100">-->
+<!--                                </div>-->
+<!--                            </div>-->
 
-                            <!-- Кнопки управления - компактные и полупрозрачные -->
-                            <button class="carousel-control-prev" type="button" data-bs-target="#{{ name }}{{ loop.index }}" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#{{ name }}{{ loop.index }}" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                            </button>
+<!--                            &lt;!&ndash; Кнопки управления - компактные и полупрозрачные &ndash;&gt;-->
+<!--                            <button class="carousel-control-prev" type="button" data-bs-target="#{{ name }}{{ loop.index }}" data-bs-slide="prev">-->
+<!--                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>-->
+<!--                            </button>-->
+<!--                            <button class="carousel-control-next" type="button" data-bs-target="#{{ name }}{{ loop.index }}" data-bs-slide="next">-->
+<!--                                <span class="carousel-control-next-icon" aria-hidden="true"></span>-->
+<!--                            </button>-->
+<!--                        </div>-->
+<!--                    {% endfor %}-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        {% endfor %}-->
+<!--    </div>-->
+    <h1>Проекты</h1>
+
+    {% for project in projects %}
+        <div id="{{ project['id'] }}" class="carousel slide" data-bs-ride="carousel" data-bs-interval="30000" data-bs-pause="hover">
+            <div class="carousel-inner" onclick="location.href='/project_info/{{ project['id'] }}'">
+                {% for slide in project["imgs"] %}
+                    {% if loop.first %}
+                        <div class="carousel-item active">
+                            <img src="{{ slide }}" class="d-block w-100">
                         </div>
-                    {% endfor %}
-                </div>
+                    {% else %}
+                        <div class="carousel-item">
+                            <img src="{{ slide }}" class="d-block w-100">
+                        </div>
+                    {% endif %}
+                {% endfor %}
             </div>
-        {% endfor %}
-    </div>
-    
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#{{ project['id'] }}" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            </button>
+
+            <button class="carousel-control-next" type="button" data-bs-target="#{{ project['id'] }}" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            </button>
+        </div>
+
+        <h2>{{ project["name"] }}</h2>
+    {% endfor %}
 {% endblock %}

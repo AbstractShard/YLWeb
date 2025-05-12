@@ -69,11 +69,9 @@ def verify_captcha(token, action=None, captcha_type='recaptcha'):
 def check_buffer(func):
     @wraps(func)
     def body(*args, **kwargs):
-        # Проверка на наличие папки "buffer"
         if not os.path.exists("static/buffer"):
             os.mkdir("static/buffer")
 
-        # Проверка на наличие файла с изображением профиля
         if not os.path.exists(CURRENT_PROFILE_PATH):
             if not isinstance(current_user, AnonymousUserMixin):
                 with open(CURRENT_PROFILE_PATH, mode="wb") as curr_img:
@@ -133,7 +131,6 @@ def add_project_files(project: Project):
             project_files.write(project.files)
 
 
-@check_project_dir
 def project_to_dict(project: Project) -> dict:
     extract_project_imgs(project)
 

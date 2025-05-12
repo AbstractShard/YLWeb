@@ -31,9 +31,11 @@
 
     <p>{{ project["created_date"] }}</p>
 
-    {% if project_download %}
+    {% if project_btn == "login" %}
+        <button class="btn btn-warning" onclick="location.href='/register'">Для покупки проектов нужно зарегистрироваться</button>
+    {% elif project_btn == "download"%}
         <a class="btn btn-success" href="../static/buffer/projects/{{ project['id'] }}/project_files" download="{{ project['name'] }}.zip">Скачать проект</a>
-    {% else %}
+    {% elif project_btn == "buy" %}
         <form method="post"><button class="btn btn-primary">Купить за {{ project["price"] }}GEF's</button></form>
     {% endif %}
 {% endblock %}

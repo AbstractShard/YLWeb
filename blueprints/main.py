@@ -1,10 +1,12 @@
-from flask import Blueprint, render_template, request, jsonify, redirect
-from flask_login import login_required, current_user
+from flask import Blueprint, render_template, request
+from flask_login import current_user
+
 from db_related.data import db_session
-from db_related.data.users import User
 from db_related.data.message import Message
-from consts import check_buffer
-from consts import PROJECT_TYPES
+from db_related.data.projects import Project
+
+from consts import check_buffer, project_to_dict
+
 import datetime
 
 # Initialize blueprint
@@ -14,16 +16,13 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route("/")
 @check_buffer
 def index():
-    projects = {
-        "Continue": ['!add_project', ..., ...],
-        "Most-liked": [..., ..., ..., ...],
-        "Recent": [..., ..., ..., ..., ...]
-    }
+    db_sess = db_session.create_session()
+    projects = db_sess.query(Project).all()
+
     template_params = {
         "template_name_or_list": 'index.html',
         "title": 'UltimateUnity',
-        "project_types": PROJECT_TYPES,
-        "projects": projects
+        "projects": [project_to_dict(proj) for proj in projects]
     }
     
     return render_template(**template_params)
