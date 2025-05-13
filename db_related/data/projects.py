@@ -20,3 +20,11 @@ class Project(SqlAlchemyBase):
 
     created_by_user_id = Column(Integer, ForeignKey("users.id"))
     created_by_user = orm.relationship("User", foreign_keys=[created_by_user_id], back_populates="created_projects")
+
+    purchased_by_users = orm.relationship(
+        "User", 
+        secondary="user_project_association",
+        back_populates="purchased_projects",
+        uselist=True
+    )
+    

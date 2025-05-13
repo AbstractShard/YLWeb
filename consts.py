@@ -21,19 +21,19 @@ APP_SECRET_KEY = os.getenv('APP_SECRET_KEY')
 PROJECT_TYPES = ['Continue', 'Most-liked', 'Recent']
 
 
-def verify_captcha(token, action=None, captcha_type='recaptcha'):
+def verify_captcha(token, captcha_type, action=None):
     """Verify reCAPTCHA v3 or hCaptcha token and return (success, message) tuple.
     
     Args:
         token (str): The captcha token to verify
+        captcha_type (str): Type of captcha ('recaptcha' or 'hcaptcha').
         action (str, optional): The action to verify for reCAPTCHA. Defaults to None.
-        captcha_type (str, optional): Type of captcha ('recaptcha' or 'hcaptcha'). Defaults to 'recaptcha'.
     
     Returns:
         tuple: (success: bool, message: str)
     """
     if not token:
-        return False, "Капча не пройдена."
+        return False, f"{captcha_type} не пройдена."
     
     if captcha_type == 'recaptcha':
         data = {
@@ -41,7 +41,7 @@ def verify_captcha(token, action=None, captcha_type='recaptcha'):
             'response': token
         }
         verify_url = 'https://www.google.com/recaptcha/api/siteverify'
-    else:  # hcaptcha
+    elif captcha_type == 'hcaptcha':
         data = {
             'secret': HCAPTCHA_SECRET_KEY,
             'response': token

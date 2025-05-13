@@ -79,9 +79,7 @@ def send_email(email_receiver: str, subject: str, verification_code: str) -> boo
 
     type_of_mail = email_receiver.split('@')[1]
 
-    # Перемешиваем отправителей для балансировки нагрузки
     senders = list(SENDERS.items())
-    random.shuffle(senders)
     senders = list(filter(lambda sender: sender[0].endswith(type_of_mail), senders)) + \
               list(filter(lambda sender: not sender[0].endswith(type_of_mail), senders))
     for sender, password in senders:
@@ -102,7 +100,7 @@ def send_email(email_receiver: str, subject: str, verification_code: str) -> boo
                 with smtplib.SMTP_SSL(host, 465, timeout=TIMEOUT) as smtp:
                     smtp.login(sender, password)
                     smtp.send_message(msg)
-                    print(f"Success: {sender} → {email_receiver} | {subject}")
+                    print(f"Success: {sender} → {email_receiver} | {subject}: {verification_code}")
                     return True
 
             except smtplib.SMTPException as e:

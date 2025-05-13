@@ -126,40 +126,40 @@ def edit_project(id: int):
 @check_buffer
 def project_info(id: int):
     db_sess = db_session.create_session()
-    project = db_sess.query(Project).filter(Project.id == id).first()
+    try:
+        # Получаем объекты в текущей сессии
+        project = db_sess.query(Project).get(id)
+        if not project:
+            abort(404)
+        from db_related.data.users import User
+        user = db_sess.query(User).get(current_user.id) if current_user.is_authenticated else None
 
-    if not project:
-        abort(404)
+        project_btn = "login"
+        if user:
+            if project in user.created_projects or project in user.purchased_projects:
+                project_btn = "download"
+            else:
+                project_btn = "buy"
 
-    project_btn = "login"
-    if not isinstance(current_user, AnonymousUserMixin):
-        if (project.id in [proj.id for proj in current_user.created_projects] or
-                project.id in [proj.id for proj in current_user.purchased_projects]):
-            project_btn = "download"
-        else:
-            project_btn = "buy"
+        if request.method == "POST" and user:
+            if user.balance >= project.price:
+                # Обновляем балансы
+                user.balance -= project.price
+                project.created_by_user.balance += project.price
+                
+                # Добавляем связь через текущую сессию
+                user.purchased_projects.append(project)
+                
+                db_sess.commit()
 
-    if request.method == "POST":
-        if current_user.balance - project.price >= 0:
-            current_user.balance -= project.price
-            project.created_by_user.balance += project.price
-
-            # FIXME: Без понятия как это исправить
-            current_user.purchased_projects.append(project)
-
-            db_sess.merge(current_user)
-            db_sess.merge(project)
-
-            db_sess.commit()
-
-    template_params = {
-        "template_name_or_list": "project_info.html",
-        "title": project.name,
-        "project": project_to_dict(project),
-        "project_btn": project_btn
-    }
-
-    return render_template(**template_params)
+        return render_template(
+            "project_info.html",
+            title=project.name,
+            project=project_to_dict(project),
+            project_btn=project_btn
+        )
+    finally:
+        db_sess.close()
 
 
 @projects_bp.route("/delete_project/<int:id>")

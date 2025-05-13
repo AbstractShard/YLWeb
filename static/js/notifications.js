@@ -22,10 +22,12 @@ function showNotification(message, type = 'success') {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const verifyButton = document.getElementById('send_verify_code');
-    if (verifyButton) {
+    const verifyButtons = document.querySelectorAll('.send-verify-code');
+    verifyButtons.forEach(function(verifyButton) {
+        let isSending = false;
         verifyButton.addEventListener('click', function() {
-            // Find the closest form and get the email field
+            if (isSending) return;
+            isSending = true;
             const form = verifyButton.closest('form');
             let subject = 'verify_email';
             if (window.location.pathname.includes('change_password')) {
@@ -36,16 +38,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 subject = 'register';
             }
             let email = null;
-            if (subject !== 'forgot_password') {
-                let emailField = form.querySelector('input[name="email"]');
-                email = emailField ? emailField.value.trim() : null;
-                if (!email && form.dataset.email) {
-                    email = form.dataset.email;
-                }
-                if (!email) {
-                    showNotification('email не указан', 'danger');
-                    return;
-                }
+            let emailField = form.querySelector('input[name="email"]');
+
+            email = emailField ? emailField.value.trim() : null;
+
+            if (!email && form.dataset.email && subject != 'change_password') {
+                email = form.dataset.email;
+            }
+            if (!email && subject != 'change_password') {
+                showNotification('email не указан', 'danger');
+                return;
             }
             fetch('/send_verify_code', {
                 method: 'POST',
@@ -61,10 +63,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     showNotification('Ошибка: ' + data.message, 'danger');
                 }
+                isSending = false;
             })
             .catch(() => {
                 showNotification('Ошибка при отправке кода', 'danger');
+                isSending = false;
             });
         });
-    }
+    });
 });

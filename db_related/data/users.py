@@ -25,8 +25,14 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     # Для проектов
     created_projects = orm.relationship("Project", back_populates="created_by_user", foreign_keys="Project.created_by_user_id", uselist=True)
 
-    purchased_projects_ids = Column(Integer, ForeignKey("projects.id"))
-    purchased_projects = orm.relationship("Project", foreign_keys=[purchased_projects_ids], uselist=True)
+    #purchased_projects_ids = Column(Integer, ForeignKey("projects.id"))
+    purchased_projects = orm.relationship(
+        "Project", 
+        secondary="user_project_association",
+        back_populates="purchased_by_users",
+        uselist=True
+    )
+    #purchased_projects = orm.relationship("Project", foreign_keys=[purchased_projects_ids], uselist=True)
 
     def set_password(self, password: str):
         self.hashed_password = generate_password_hash(password)
