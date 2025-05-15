@@ -127,7 +127,7 @@ def extract_project_imgs(project: Project):
 @check_project_dir
 def add_project_files(project: Project):
     if "project_files.zip" not in os.listdir(project_dir := f"{PROJECTS_PATH}/{project.id}"):
-        with open(f"{project_dir}/project_files.zip", mode="wb") as project_files:
+        with open(f"{project_dir}/{project.name}.zip", mode="wb") as project_files:
             project_files.write(project.files)
 
 

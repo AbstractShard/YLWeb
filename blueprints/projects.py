@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, abort
-from flask_login import login_required, current_user, AnonymousUserMixin
+from flask_login import login_required, current_user
 from db_related.data import db_session
 from db_related.data.projects import Project
 from forms import EditProjectForm
@@ -137,6 +137,7 @@ def project_info(id: int):
         project_btn = "login"
         if user:
             if project in user.created_projects or project in user.purchased_projects:
+                add_project_files(project)
                 project_btn = "download"
             else:
                 project_btn = "buy"
