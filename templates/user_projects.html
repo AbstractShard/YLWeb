@@ -1,18 +1,38 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Проекты пользователя {{ current_user.name }}</h1>
+<div style="margin: 20px">
+    <h1>Ваши Проекты</h1>
 
     <p><button class="btn btn-success" onclick="location.href='/add_project'">Создать проект</button></p>
 
-    {% for proj in projects %}
-        <div class="col-md6 border rounded" onclick="location.href='/edit_project/{{ proj['id'] }}'">
-            <img
-                    src="{{ proj['imgs'][0] }}"
-                    width="100px"
-                    height="100px"
-            >
-            <h2>{{ proj["name"] }}</h2>
-        </div>
+    {% for project in projects %}
+      <div class="project-card mb-4 mt-4" onclick="location.href='/project_info/{{ project['id'] }}'">
+          <div id="carousel-{{ project['id'] }}" class="carousel slide" data-bs-ride="carousel" data-bs-interval="30000" data-bs-pause="hover">
+            <div class="carousel-inner">
+              {% for slide in project["imgs"] %}
+                {% if loop.first %}
+                  <div class="carousel-item active project-card-img">
+                    <img src="{{ slide }}" class="d-block w-100 card-img-top rounded-top" alt="{{ project['name'] }} image">
+                  </div>
+                {% else %}
+                  <div class="carousel-item">
+                    <img src="{{ slide }}" class="d-block w-100 card-img-top rounded-top" alt="{{ project['name'] }} image">
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ project['id'] }}" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ project['id'] }}" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="project-card-title">
+            <h5>{{ project["name"] }}</h5>
+          </div>
+      </div>
     {% endfor %}
+    </div>
 {% endblock %}
