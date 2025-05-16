@@ -1,9 +1,9 @@
-from flask import jsonify
+from flask import jsonify, request
 from flask_restful import Resource, abort
 
 from .projects import Project
 from . import db_session
-from .project_parsers import parser_post, parser_put
+
 def abort_if_project_not_found(project_id):
     session = db_session.create_session()
     project = session.query(Project).filter(Project.id == project_id).first()
@@ -46,21 +46,21 @@ class ProjectsResource(Resource):
     
     def put(self, project_id):
         abort_if_project_not_found(project_id)
-        args = parser_put.parse_args()
         session = db_session.create_session()
         project = session.query(Project).filter(Project.id == project_id).first()
-        if args['name']:
-            project.name = args['name']
-        if args['description']:
-            project.description = args['description']
-        if args['price']:
-            project.price = args['price']
-        if args['created_by_user_id']:
-            project.created_by_user_id = args['created_by_user_id']
-        if args['files']:
-            project.files = args['files']
-        if args['imgs']:
-            project.imgs = args['imgs']
+        # Update fields from form data
+        if 'name' in request.form:
+            project.name = request.form['name']
+        if 'description' in request.form:
+            project.description = request.form['description']
+        if 'price' in request.form:
+            project.price = request.form['price']
+        if 'created_by_user_id' in request.form:
+            project.created_by_user_id = request.form['created_by_user_id']
+        if 'files' in request.files:
+            project.files = request.files['files'].read()
+        if 'imgs' in request.files:
+            project.imgs = request.files['imgs'].read()
         session.commit()
         return jsonify({'success': 'OK'})
     
@@ -74,20 +74,24 @@ class ProjectsListResource(Resource):
         )) for item in projects]})
     
     def post(self):
-        args = parser_post.parse_args()
-        abort_if_project_exists(args['name'])
+        # Accept form data and files
+        name = request.form.get('name')
+        description = request.form.get('description')
+        price = request.form.get('price')
+        created_by_user_id = request.form.get('created_by_user_id')
+        files = request.files.get('files')
+        imgs = request.files.get('imgs')
+        abort_if_project_exists(name)
         session = db_session.create_session()
         project = Project(
-            name=args['name'],
-            price=args['price'],
-            files=args['files'],
-            created_by_user_id=args['created_by_user_id'],
+            name=name,
+            price=price,
+            created_by_user_id=created_by_user_id,
+            files=files.read() if files else None,
+            imgs=imgs.read() if imgs else None,
         )
-        if args['description']:
-            project.description = args['description']
-        if args['imgs']:
-            project.imgs = args['imgs']
-
+        if description:
+            project.description = description
         session.add(project)
         session.commit()
         return jsonify({'success': 'OK',
