@@ -6,7 +6,7 @@ from flask_restful import abort, Resource
 
 from . import db_session
 from .verify_cods import VerifyCode, send_email
-from .api_parsers import parser_verify_code
+from .user_parsers import parser_verify_code
 
 SUBJECTS = ['verify_email', 'change_password', 'forgot_password']
 

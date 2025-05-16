@@ -1,11 +1,10 @@
 from flask import jsonify
 from flask_restful import Resource, abort
 
-
 from .users import User
 from .verify_cods import VerifyCode
 from . import db_session
-from .api_parsers import parser_post, parser_put
+from .user_parsers import parser_post, parser_put
 
 
 def abort_if_user_not_found(user_email):
@@ -13,7 +12,7 @@ def abort_if_user_not_found(user_email):
     user = session.query(User).filter(User.email == user_email).first()
     if not user:
         abort_params = {
-            'error': '404',
+            'error': '404', 
             'message': f"User {user_email} not found"
         }
         abort(404, **abort_params)

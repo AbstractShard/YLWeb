@@ -4,8 +4,9 @@ from flask_restful import Api
 from dotenv import load_dotenv
 import os
 
-from db_related.data import db_session, users_resources, verify_cods_resources
+from db_related.data import db_session
 from db_related.data.users import User
+from db_related.data import users_resources, projects_resources, verify_cods_resources
 from blueprints.auth import auth_bp
 from blueprints.projects import projects_bp
 from blueprints.main import main_bp
@@ -76,6 +77,9 @@ def load_user(user_id: int) -> User:
 api.add_resource(users_resources.UsersListResource, '/api/users')
 api.add_resource(users_resources.UsersResource, '/api/users/<int:user_id>')
 api.add_resource(verify_cods_resources.VerifyCodeResource, '/api/verify_codes/<int:code_id>')
+api.add_resource(projects_resources.ProjectsListResource, '/api/projects')
+api.add_resource(projects_resources.ProjectsResource, '/api/projects/<int:project_id>')
+
 
 def main():
     db_session.global_init("db_related/db/db.db")

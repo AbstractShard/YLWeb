@@ -1,10 +1,11 @@
 from .db_session import SqlAlchemyBase
 from sqlalchemy import Column, Integer, String, DateTime, LargeBinary, ForeignKey
 from sqlalchemy import orm
+from sqlalchemy_serializer import SerializerMixin
 from datetime import datetime
 
 
-class Project(SqlAlchemyBase):
+class Project(SqlAlchemyBase, SerializerMixin):
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
