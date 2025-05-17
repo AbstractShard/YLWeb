@@ -15,6 +15,9 @@ import consts
 # Load environment variables
 load_dotenv("static/.env")
 
+# === ВАЖНО: инициализация базы данных должна быть здесь ===
+db_session.global_init("db_related/db/db.db")
+
 # Initialize Flask app
 app = Flask(__name__)
 api = Api(app)
@@ -90,9 +93,9 @@ api.add_resource(projects_resources.ProjectsResource, "/api/projects/<int:projec
 
 
 def main():
-    db_session.global_init("db_related/db/db.db")
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+    
 
 
 if __name__ == "__main__":
