@@ -1,3 +1,4 @@
+import os
 from flask import jsonify, request
 from flask_restful import Resource, abort
 
@@ -58,9 +59,21 @@ class ProjectsResource(Resource):
         if 'created_by_user_id' in request.form:
             project.created_by_user_id = request.form['created_by_user_id']
         if 'files' in request.files:
-            project.files = request.files['files'].read()
+            files_file = request.files['files']
+            project_dir = f"static/buffer/projects/{project.id}"
+            os.makedirs(project_dir, exist_ok=True)
+            files_path = f"{project_dir}/{project.name}.zip"
+            with open(files_path, "wb") as f:
+                f.write(files_file.read())
+            project.files = files_path
         if 'imgs' in request.files:
-            project.imgs = request.files['imgs'].read()
+            imgs_file = request.files['imgs']
+            project_dir = f"static/buffer/projects/{project.id}"
+            os.makedirs(project_dir, exist_ok=True)
+            imgs_path = f"{project_dir}/project_imgs.zip"
+            with open(imgs_path, "wb") as f:
+                f.write(imgs_file.read())
+            project.imgs = imgs_path
         session.commit()
         return jsonify({'success': 'OK'})
     
@@ -81,18 +94,28 @@ class ProjectsListResource(Resource):
         created_by_user_id = request.form.get('created_by_user_id')
         files = request.files.get('files')
         imgs = request.files.get('imgs')
-        abort_if_project_exists(name)
         session = db_session.create_session()
         project = Project(
             name=name,
             price=price,
             created_by_user_id=created_by_user_id,
-            files=files.read() if files else None,
-            imgs=imgs.read() if imgs else None,
+            description=description or None,
+            files='',
+            imgs=''
         )
-        if description:
-            project.description = description
         session.add(project)
+        session.flush()  # get project.id
+        project_dir = f"static/buffer/projects/{project.id}"
+        os.makedirs(project_dir, exist_ok=True)
+        if imgs:
+            imgs_path = f"{project_dir}/project_imgs.zip"
+            with open(imgs_path, "wb") as f:
+                f.write(imgs.read())
+            project.imgs = imgs_path
+        if files:
+            files_path = f"{project_dir}/{project.name}.zip"
+            with open(files_path, "wb") as f:
+                f.write(files.read())
+            project.files = files_path
         session.commit()
-        return jsonify({'success': 'OK',
-                        'id': project.id})
+        return jsonify({'success': 'OK', 'id': project.id})

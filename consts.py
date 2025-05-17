@@ -111,24 +111,22 @@ def check_zip(data) -> bool:
 @check_project_dir
 def extract_project_imgs(project: Project):
     project_dir = f"{PROJECTS_PATH}/{project.id}"
-    zip_dir = f"{project_dir}/project_imgs.zip"
-
-    with open(zip_dir, mode="wb") as project_imgs:
-        project_imgs.write(project.imgs)
-
+    zip_dir = project.imgs  # Now imgs is a file path
+    if not os.path.exists(zip_dir):
+        return
     with ZipFile(zip_dir) as my_zip:
         for img_name in my_zip.namelist():
             if img_name not in os.listdir(project_dir):
                 my_zip.extract(img_name, path=project_dir)
 
-    os.remove(zip_dir)
-
 
 @check_project_dir
 def add_project_files(project: Project):
-    if "project_files.zip" not in os.listdir(project_dir := f"{PROJECTS_PATH}/{project.id}"):
-        with open(f"{project_dir}/{project.name}.zip", mode="wb") as project_files:
-            project_files.write(project.files)
+    project_dir = f"{PROJECTS_PATH}/{project.id}"
+    files_path = project.files  # Now files is a file path
+    if not os.path.exists(files_path):
+        return
+    # No need to copy, just ensure file exists
 
 
 def project_to_dict(project: Project) -> dict:

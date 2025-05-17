@@ -1,5 +1,5 @@
 from .db_session import SqlAlchemyBase
-from sqlalchemy import Column, Integer, String, DateTime, LargeBinary, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy import orm
 from sqlalchemy_serializer import SerializerMixin
 from datetime import datetime
@@ -16,8 +16,9 @@ class Project(SqlAlchemyBase, SerializerMixin):
 
     price = Column(Integer, default=0)
 
-    files = Column(LargeBinary, nullable=False)
-    imgs = Column(LargeBinary, nullable=False)
+    # Store file paths instead of binary data
+    files = Column(String, nullable=False)  # Path to project ZIP
+    imgs = Column(String, nullable=False)   # Path to images ZIP
 
     created_by_user_id = Column(Integer, ForeignKey("users.id"))
     created_by_user = orm.relationship("User", foreign_keys=[created_by_user_id], back_populates="created_projects")
@@ -28,4 +29,3 @@ class Project(SqlAlchemyBase, SerializerMixin):
         back_populates="purchased_projects",
         uselist=True
     )
-    

@@ -4,6 +4,7 @@ from db_related.data import db_session
 from db_related.data.projects import Project
 from forms import EditProjectForm
 from consts import check_buffer, project_to_dict, check_zip, add_project_files
+import os
 
 # Initialize blueprint
 projects_bp = Blueprint('projects', __name__)
@@ -33,24 +34,36 @@ def add_project():
         db_sess = db_session.create_session()
         project = Project(name=form.name.data, description=form.description.data, price=form.price.data)
 
-        if not (imgs := form.imgs.data.read()):
+        # Save uploaded files to disk
+        imgs_file = form.imgs.data
+        files_file = form.files.data
+        if not imgs_file:
             return render_template(message="У проекта нет изображений", **template_params)
-        elif not check_zip(imgs):
+        imgs_data = imgs_file.read()
+        if not check_zip(imgs_data):
             return render_template(message="Изображения - не ZIP-файл", **template_params)
-
-        if not (files := form.files.data.read()):
+        if not files_file:
             return render_template(message="А где собственно, сами файлы проекта?", **template_params)
-        elif not check_zip(files):
+        files_data = files_file.read()
+        if not check_zip(files_data):
             return render_template(message="Файлы проекта - не ZIP-файл", **template_params)
 
-        project.imgs = imgs
-        project.files = files
+        db_sess.add(project)
+        db_sess.flush()  # Get project.id before commit
+        project_dir = f"static/buffer/projects/{project.id}"
+        os.makedirs(project_dir, exist_ok=True)
+        imgs_path = f"{project_dir}/project_imgs.zip"
+        files_path = f"{project_dir}/{project.name}.zip"
+        with open(imgs_path, "wb") as f:
+            f.write(imgs_data)
+        with open(files_path, "wb") as f:
+            f.write(files_data)
+        project.imgs = imgs_path
+        project.files = files_path
 
         current_user.created_projects.append(project)
-
         db_sess.merge(current_user)
         db_sess.commit()
-
         return redirect("/current_projects")
 
     return render_template(**template_params)
@@ -103,20 +116,29 @@ def edit_project(id: int):
         project.description = form.description.data
         project.price = form.price.data
 
-        if (imgs := form.imgs.data.read()) != project.imgs:
-            if check_zip(imgs):
-                project.imgs = imgs
+        imgs_file = form.imgs.data
+        files_file = form.files.data
+        project_dir = f"static/buffer/projects/{project.id}"
+        os.makedirs(project_dir, exist_ok=True)
+        if imgs_file:
+            imgs_data = imgs_file.read()
+            if check_zip(imgs_data):
+                imgs_path = f"{project_dir}/project_imgs.zip"
+                with open(imgs_path, "wb") as f:
+                    f.write(imgs_data)
+                project.imgs = imgs_path
             else:
                 return render_template(message="Изображения - не ZIP-файл", **template_params)
-
-        if (files := form.files.data.read()) != project.files:
-            if check_zip(files):
-                project.files = files
+        if files_file:
+            files_data = files_file.read()
+            if check_zip(files_data):
+                files_path = f"{project_dir}/{project.name}.zip"
+                with open(files_path, "wb") as f:
+                    f.write(files_data)
+                project.files = files_path
             else:
                 return render_template(message="Файлы проекта - не ZIP-файл", **template_params)
-
         db_sess.commit()
-
         return redirect("/current_projects")
 
     return render_template(**template_params)
