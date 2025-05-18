@@ -1,22 +1,17 @@
-from flask import Blueprint, render_template, request, redirect, abort
+from flask import Blueprint, render_template, request, redirect, abort, send_from_directory
 from flask_login import login_required, current_user
 from db_related.data import db_session
 from db_related.data.projects import Project
 from forms import EditProjectForm
 from consts import check_buffer, project_to_dict, check_zip, add_project_files
 import os
+import zipfile
+import io
 
 # Initialize blueprint
 projects_bp = Blueprint('projects', __name__)
 
 # Routes
-@projects_bp.route("/projects")
-@check_buffer
-def projects_list():
-    db_sess = db_session.create_session()
-    projects = db_sess.query(Project).all()
-    return render_template("projects/list.html", title="Проекты", projects=projects)
-
 @projects_bp.route("/add_project", methods=["GET", "POST"])
 @login_required
 @check_buffer
@@ -32,38 +27,50 @@ def add_project():
 
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        project = Project(name=form.name.data, description=form.description.data, price=form.price.data)
-
-        # Save uploaded files to disk
         imgs_file = form.imgs.data
         files_file = form.files.data
         if not imgs_file:
             return render_template(message="У проекта нет изображений", **template_params)
+        if not files_file:
+            return render_template(message="А где собственно, сами файлы проекта?", **template_params)
         imgs_data = imgs_file.read()
         if not check_zip(imgs_data):
             return render_template(message="Изображения - не ZIP-файл", **template_params)
-        if not files_file:
-            return render_template(message="А где собственно, сами файлы проекта?", **template_params)
         files_data = files_file.read()
         if not check_zip(files_data):
             return render_template(message="Файлы проекта - не ZIP-файл", **template_params)
 
-        db_sess.add(project)
-        db_sess.flush()  # Get project.id before commit
+        # 1. Создаём проект (пути пока пустые)
+        project = Project(
+            name=form.name.data,
+            description=form.description.data,
+            price=form.price.data,
+            created_by_user_id=current_user.id
+        )
+
+        # 2. Сохраняем файлы на диск
         project_dir = f"static/buffer/projects/{project.id}"
         os.makedirs(project_dir, exist_ok=True)
         imgs_path = f"{project_dir}/project_imgs.zip"
-        files_path = f"{project_dir}/{project.name}.zip"
+        files_path = f"{project_dir}/project_files.zip"
+
         with open(imgs_path, "wb") as f:
             f.write(imgs_data)
         with open(files_path, "wb") as f:
             f.write(files_data)
+        with zipfile.ZipFile(io.BytesIO(imgs_data)) as zip_ref:
+            zip_ref.extractall(project_dir)
+
+        # 3. Обновляем пути в проекте
         project.imgs = imgs_path
         project.files = files_path
 
-        current_user.created_projects.append(project)
-        db_sess.merge(current_user)
+        db_sess.add(project)
         db_sess.commit()
+        
+        # 4. Переименовываем папку с проектом
+        new_project_dir = f"static/buffer/projects/{project.id}"
+        os.rename(project_dir, new_project_dir)
         return redirect("/current_projects")
 
     return render_template(**template_params)
@@ -79,6 +86,8 @@ def current_projects():
     user_projects = []
     for proj in projects:
         user_projects.append(project_to_dict(proj))
+    
+    print(user_projects)
 
     template_params = {
         "template_name_or_list": "user_projects.html",
@@ -144,7 +153,7 @@ def edit_project(id: int):
     return render_template(**template_params)
 
 
-@projects_bp.route("/project_info/<int:id>", methods=["GET", "POST"])
+@projects_bp.route("/project/<int:id>", methods=["GET", "POST"])
 @check_buffer
 def project_info(id: int):
     db_sess = db_session.create_session()

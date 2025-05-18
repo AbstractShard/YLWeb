@@ -5,7 +5,7 @@
     <h1>Главная</h1>
     <div class="projects">
         {% for project in projects %}
-      <div class="project-card mb-4 mt-4" onclick="location.href='/project_info/{{ project['id'] }}'">
+      <div class="project-card mb-4 mt-4" onclick="location.href='/project/{{ project['id'] }}'">
           <div id="carousel-{{ project['id'] }}" class="carousel slide" data-bs-ride="carousel" data-bs-interval="30000" data-bs-pause="hover">
             <div class="carousel-inner">
               {% for slide in project["imgs"] %}
@@ -20,10 +20,10 @@
                 {% endif %}
               {% endfor %}
             </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ project['id'] }}" data-bs-slide="prev">
+            <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ project['id'] }}" data-bs-slide="prev" onclick="event.stopPropagation();">
               <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ project['id'] }}" data-bs-slide="next">
+            <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ project['id'] }}" data-bs-slide="next" onclick="event.stopPropagation();">
               <span class="carousel-control-next-icon" aria-hidden="true"></span>
             </button>
           </div>
