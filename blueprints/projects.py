@@ -1,12 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, abort, send_from_directory
 from flask_login import login_required, current_user
+from db_related.data.users import User
 from db_related.data import db_session
 from db_related.data.projects import Project
 from forms import EditProjectForm
-from consts import check_buffer, project_to_dict, check_zip, add_project_files
+from consts import check_buffer, project_to_dict, check_zip
 import os
 import zipfile
 import io
+import shutil
 
 # Initialize blueprint
 projects_bp = Blueprint('projects', __name__)
@@ -27,6 +29,14 @@ def add_project():
 
     if form.validate_on_submit():
         db_sess = db_session.create_session()
+        project_name = form.name.data
+        
+        # 1. Проверяем, что имя проекта уникально
+        project = db_sess.query(Project).filter(Project.name == project_name).first()
+        if project:
+            return render_template(message="Проект с таким именем уже существует", **template_params)
+        
+        # 2. Проверяем, что файлы проекта и изображения загружены
         imgs_file = form.imgs.data
         files_file = form.files.data
         if not imgs_file:
@@ -40,39 +50,34 @@ def add_project():
         if not check_zip(files_data):
             return render_template(message="Файлы проекта - не ZIP-файл", **template_params)
 
-        # 1. Создаём проект (пути пока пустые)
-        project = Project(
-            name=form.name.data,
-            description=form.description.data,
-            price=form.price.data,
-            created_by_user_id=current_user.id
-        )
-
-        # 2. Сохраняем файлы на диск
-        project_dir = f"static/buffer/projects/{project.id}"
+        # 1. Сохраняем файлы на диск
+        project_dir = f"static/buffer/projects/{project_name}"
         os.makedirs(project_dir, exist_ok=True)
-        imgs_path = f"{project_dir}/project_imgs.zip"
-        files_path = f"{project_dir}/project_files.zip"
+        os.mkdir(f"{project_dir}/preview_imgs")
+        imgs_path = f"{project_dir}/preview_imgs"
+        files_path = f"{project_dir}/{project_name}.zip"
 
-        with open(imgs_path, "wb") as f:
-            f.write(imgs_data)
         with open(files_path, "wb") as f:
             f.write(files_data)
         with zipfile.ZipFile(io.BytesIO(imgs_data)) as zip_ref:
-            zip_ref.extractall(project_dir)
+            zip_ref.extractall(imgs_path)
+                        
+        # 2. Создаём проект
+        project = Project(
+            name=project_name,
+            description=form.description.data,
+            price=form.price.data,
+            imgs=imgs_path,
+            files=files_path,
+            created_by_user_id=current_user.id
+        )
 
-        # 3. Обновляем пути в проекте
-        project.imgs = imgs_path
-        project.files = files_path
-
+        # 3. Добавляем проект в базу данных
         db_sess.add(project)
         db_sess.commit()
-        
-        # 4. Переименовываем папку с проектом
-        new_project_dir = f"static/buffer/projects/{project.id}"
-        os.rename(project_dir, new_project_dir)
+                
         return redirect("/current_projects")
-
+        
     return render_template(**template_params)
 
 
@@ -98,15 +103,17 @@ def current_projects():
     return render_template(**template_params)
 
 
-@projects_bp.route("/edit_project/<int:id>", methods=["GET", "POST"])
+@projects_bp.route("/edit_project/<string:name>", methods=["GET", "POST"])
 @login_required
 @check_buffer
-def edit_project(id: int):
+def edit_project(name: str):
     form = EditProjectForm()
 
     db_sess = db_session.create_session()
-    project = db_sess.query(Project).filter(Project.id == id, Project.created_by_user == current_user).first()
-
+    project = db_sess.query(Project).filter(Project.name == name, Project.created_by_user == current_user).first()
+    if not project:
+        abort(404)
+        
     template_params = {
         "template_name_or_list": "edit_project.html",
         "title": "Редактирование проекта",
@@ -121,87 +128,131 @@ def edit_project(id: int):
         form.price.data = project.price
 
     if form.validate_on_submit():
-        project.name = form.name.data
+        project_new_name = form.name.data
+        project_old_name = project.name
+        project_old_imgs = project.imgs
+        project_old_files = project.files
+        
+        # 1. Проверяем, что имя проекта уникально
+        project_by_other = db_sess.query(Project).filter(Project.name == project_new_name, Project.created_by_user != current_user).first()
+        if project_by_other:
+            return render_template(message="Проект с таким именем уже существует", **template_params)
+        
+        # Если имя изменилось, переименовываем папку и файлы
+        if project_new_name != project_old_name:
+            old_dir = f"static/buffer/projects/{project_old_name}"
+            new_dir = f"static/buffer/projects/{project_new_name}"
+            if os.path.exists(old_dir):
+                os.rename(old_dir, new_dir)
+            # Обновляем пути к preview_imgs и .zip
+            project.imgs = f"{new_dir}/preview_imgs"
+            project.files = f"{new_dir}/{project_new_name}.zip"
+        else:
+            new_dir = f"static/buffer/projects/{project_new_name}"
+            project.imgs = f"{new_dir}/preview_imgs"
+            project.files = f"{new_dir}/{project_new_name}.zip"
+        project.name = project_new_name
         project.description = form.description.data
         project.price = form.price.data
 
+        # 2. Проверяем, что файлы проекта и изображения загружены и обновляем их
         imgs_file = form.imgs.data
         files_file = form.files.data
-        project_dir = f"static/buffer/projects/{project.id}"
+        project_dir = new_dir
         os.makedirs(project_dir, exist_ok=True)
         if imgs_file:
             imgs_data = imgs_file.read()
-            if check_zip(imgs_data):
-                imgs_path = f"{project_dir}/project_imgs.zip"
-                with open(imgs_path, "wb") as f:
-                    f.write(imgs_data)
-                project.imgs = imgs_path
-            else:
+            if not check_zip(imgs_data):
                 return render_template(message="Изображения - не ZIP-файл", **template_params)
+            imgs_path = f"{project_dir}/preview_imgs"
+            if os.path.exists(imgs_path):
+                shutil.rmtree(imgs_path)
+            os.makedirs(imgs_path, exist_ok=True)
+            with zipfile.ZipFile(io.BytesIO(imgs_data)) as zip_ref:
+                zip_ref.extractall(imgs_path)
+            project.imgs = imgs_path
         if files_file:
             files_data = files_file.read()
-            if check_zip(files_data):
-                files_path = f"{project_dir}/{project.name}.zip"
-                with open(files_path, "wb") as f:
-                    f.write(files_data)
-                project.files = files_path
-            else:
+            if not check_zip(files_data):
                 return render_template(message="Файлы проекта - не ZIP-файл", **template_params)
+            files_path = f"{project_dir}/{project_new_name}.zip"
+            with open(files_path, "wb") as f:
+                f.write(files_data)
+            project.files = files_path
+        
+        # 3. Обновляем проект в базе данных
+        db_sess.merge(project)
         db_sess.commit()
         return redirect("/current_projects")
 
     return render_template(**template_params)
 
 
-@projects_bp.route("/project/<int:id>", methods=["GET", "POST"])
+@projects_bp.route("/project/<string:name>", methods=["GET", "POST"])
 @check_buffer
-def project_info(id: int):
+def project_info(name: str):
     db_sess = db_session.create_session()
-    try:
-        # Получаем объекты в текущей сессии
-        project = db_sess.query(Project).get(id)
-        if not project:
-            abort(404)
-        from db_related.data.users import User
-        user = db_sess.query(User).get(current_user.id) if current_user.is_authenticated else None
+    
+    # Проверяем, что проект существует
+    project = db_sess.query(Project).filter(Project.name == name).first()
+    if not project:
+        abort(404)
+        
+    user = db_sess.query(User).get(current_user.id) if current_user.is_authenticated else None
 
-        project_btn = "login"
-        if user:
-            if project in user.created_projects or project in user.purchased_projects:
-                add_project_files(project)
-                project_btn = "download"
-            else:
-                project_btn = "buy"
+    project_btn = "login"
+    if user:
+        if project in user.created_projects or project in user.purchased_projects:
+            project_btn = "download"
+        else:
+            project_btn = "buy"
 
-        if request.method == "POST" and user:
-            if user.balance >= project.price:
-                # Обновляем балансы
-                user.balance -= project.price
-                project.created_by_user.balance += project.price
-                
-                # Добавляем связь через текущую сессию
-                user.purchased_projects.append(project)
-                
-                db_sess.commit()
+    if request.method == "POST" and user:
+        if user.balance >= project.price:
+            # Обновляем балансы
+            user.balance -= project.price
+            project.created_by_user.balance += project.price
+            
+            # Добавляем связь через текущую сессию
+            user.purchased_projects.append(project)
+            
+            db_sess.commit()
+            return redirect("/project/" + project.name)
+        else:
+            return render_template(
+                "project_info.html",
+                title=project.name,
+                project=project_to_dict(project),
+                project_btn=project_btn,
+                message="Недостаточно GEF's"
+            )
 
-        return render_template(
-            "project_info.html",
-            title=project.name,
-            project=project_to_dict(project),
-            project_btn=project_btn
-        )
-    finally:
-        db_sess.close()
+    return render_template(
+        "project_info.html",
+        title=project.name,
+        project=project_to_dict(project),
+        project_btn=project_btn
+    )
 
 
-@projects_bp.route("/delete_project/<int:id>")
+@projects_bp.route("/delete_project/<string:name>")
 @login_required
 @check_buffer
-def delete_project(id: int):
+def delete_project(name: str):
     db_sess = db_session.create_session()
-    project = db_sess.query(Project).filter(Project.id == id, Project.created_by_user == current_user).first()
+    project = db_sess.query(Project).filter(Project.name == name, Project.created_by_user == current_user).first()
 
     db_sess.delete(project)
     db_sess.commit()
 
     return redirect("/current_projects")
+
+
+@projects_bp.route("/download/<string:name>")
+@check_buffer
+def download_project(name: str):
+    db_sess = db_session.create_session()
+    project = db_sess.query(Project).filter(Project.name == name).first()
+    if not project or not os.path.isfile(project.files):
+        abort(404)
+    return send_from_directory(os.path.dirname(project.files), os.path.basename(project.files), as_attachment=True)

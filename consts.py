@@ -85,17 +85,6 @@ def check_buffer(func):
     return body
 
 
-def check_project_dir(func):
-    @wraps(func)
-    def body(project: Project):
-        if not os.path.exists(f"{PROJECTS_PATH}/{project.id}"):
-            os.mkdir(f"{PROJECTS_PATH}/{project.id}")
-
-        return func(project)
-
-    return body
-
-
 def check_zip(data) -> bool:
     placeholder_path = f"{PROJECTS_PATH}/placeholder.zip"
 
@@ -108,37 +97,17 @@ def check_zip(data) -> bool:
     return res
 
 
-@check_project_dir
-def extract_project_imgs(project: Project):
-    project_dir = f"{PROJECTS_PATH}/{project.id}"
-    zip_dir = project.imgs  # Now imgs is a file path
-    if not os.path.exists(zip_dir):
-        return
-    with ZipFile(zip_dir) as my_zip:
-        for img_name in my_zip.namelist():
-            if img_name not in os.listdir(project_dir):
-                my_zip.extract(img_name, path=project_dir)
-
-
-@check_project_dir
-def add_project_files(project: Project):
-    project_dir = f"{PROJECTS_PATH}/{project.id}"
-    files_path = project.files  # Now files is a file path
-    if not os.path.exists(files_path):
-        return
-    # No need to copy, just ensure file exists
-
-
 def project_to_dict(project: Project) -> dict:
-    extract_project_imgs(project)
-
+    imgs = list(map(lambda y: f"../{PROJECTS_PATH}/{project.name}/preview_imgs/{y}",
+                    os.listdir(f"{PROJECTS_PATH}/{project.name}/preview_imgs")))
+    if not imgs:
+        imgs = ["static/img/no_project_image.jpg"]
     res = {
         "id": project.id,
         "name": project.name,
         "description": project.description,
         "price": project.price,
         "created_date": project.created_date,
-        "imgs": list(map(lambda y: f"../{PROJECTS_PATH}/{project.id}/{y}",
-                         filter(lambda x: not x.endswith(".zip"), os.listdir(f"{PROJECTS_PATH}/{project.id}"))))
+        "imgs": imgs
     }
     return res

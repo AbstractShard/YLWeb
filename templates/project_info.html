@@ -2,7 +2,17 @@
 
 {% block content %}
 <div style="margin: 20px;">
-
+    {% if message %}
+        <p>
+            <div class="alert alert-danger" role="alert">
+                {% if message == "Недостаточно GEF's" %}
+                    Недостаточно GEF's. <a href="/currency">Пополнить</a>
+                {% else %}
+                    {{ message }}
+                {% endif %}
+            </div>
+        </p>
+    {% endif %}
     <h1>{{ project["name"] }}</h1>
 
     <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
@@ -31,16 +41,20 @@
         </div>
         <div>
             <p>{{ project["description"] }}</p>
-            <p>Цена: {{ project["price"] }} GEF's</p>
+            {% if project["price"] == 0 %}
+                <p>Цена: БЕСПЛАТНО</p>
+            {% else %}
+                <p>Цена: {{ project["price"] }} GEF's</p>
+            {% endif %}
             <p>{{ project["created_date"] }}</p>
         </div>
     </div>
     <br>
 
-    {% if project_btn == "login" %}
-        <button class="btn btn-warning" onclick="location.href='/register'">Для покупки проектов нужно зарегистрироваться</button>
-    {% elif project_btn == "download"%}
-        <a class="btn btn-success" href="../static/buffer/projects/{{ project['id'] }}/{{ project['name'] }}.zip" download>Скачать проект</a>
+    {% if project_btn == "download" or project["price"] == 0 %}
+        <a class="btn btn-success" href="{{ url_for('projects.download_project', name=project['name']) }}">Скачать проект</a>
+    {% elif project_btn == "login" %}
+        <button class="btn btn-warning" onclick="location.href='/login'">Для покупки проектов нужно войти</button>
     {% elif project_btn == "buy" %}
         <form method="post"><button class="btn btn-primary">Купить за {{ project["price"] }}GEF's</button></form>
     {% endif %}

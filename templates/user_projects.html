@@ -5,7 +5,7 @@
     <h1>Ваши Проекты</h1>
     <p><button class="btn btn-success" onclick="location.href='/add_project'">Создать проект</button></p>
     {% for project in projects %}
-      <div class="project-card mb-4 mt-4" onclick="location.href='/project/{{ project['id'] }}'">
+      <div class="project-card mb-4 mt-4" onclick="location.href='/project/{{ project['name'] }}'">
           <div id="carousel-{{ project['id'] }}" class="carousel slide" data-bs-ride="carousel" data-interval="30000" data-pause="hover">
             <div class="carousel-inner">
               {% for slide in project["imgs"] %}

@@ -1,4 +1,6 @@
 import os
+import zipfile
+import io
 from flask import jsonify, request
 from flask_restful import Resource, abort
 
@@ -34,7 +36,7 @@ class ProjectsResource(Resource):
         session = db_session.create_session()
         project = session.query(Project).filter(Project.id == project_id).first()
         return jsonify({'project': project.to_dict(only=(
-            'id', 'name', 'description', 'created_date', 'price', 'created_by_user_id'
+            'id', 'name', 'description', 'created_date', 'price', 'created_by_user_id', 'files', 'imgs'
         ))})
     
     def delete(self, project_id):
@@ -60,7 +62,7 @@ class ProjectsResource(Resource):
             project.created_by_user_id = request.form['created_by_user_id']
         if 'files' in request.files:
             files_file = request.files['files']
-            project_dir = f"static/buffer/projects/{project.id}"
+            project_dir = f"static/buffer/projects/{project.name}"
             os.makedirs(project_dir, exist_ok=True)
             files_path = f"{project_dir}/{project.name}.zip"
             with open(files_path, "wb") as f:
@@ -68,11 +70,12 @@ class ProjectsResource(Resource):
             project.files = files_path
         if 'imgs' in request.files:
             imgs_file = request.files['imgs']
-            project_dir = f"static/buffer/projects/{project.id}"
+            project_dir = f"static/buffer/projects/{project.name}"
+            imgs_path = f"{project_dir}/preview_imgs"
             os.makedirs(project_dir, exist_ok=True)
-            imgs_path = f"{project_dir}/project_imgs.zip"
-            with open(imgs_path, "wb") as f:
-                f.write(imgs_file.read())
+            os.makedirs(imgs_path, exist_ok=True)
+            with zipfile.ZipFile(io.BytesIO(imgs_file)) as zip_ref:
+                zip_ref.extractall(imgs_path)
             project.imgs = imgs_path
         session.commit()
         return jsonify({'success': 'OK'})
@@ -85,37 +88,3 @@ class ProjectsListResource(Resource):
         return jsonify({'projects': [item.to_dict(only=(
             'id', 'name', 'description', 'created_date', 'price', 'created_by_user_id'
         )) for item in projects]})
-    
-    def post(self):
-        # Accept form data and files
-        name = request.form.get('name')
-        description = request.form.get('description')
-        price = request.form.get('price')
-        created_by_user_id = request.form.get('created_by_user_id')
-        files = request.files.get('files')
-        imgs = request.files.get('imgs')
-        session = db_session.create_session()
-        project = Project(
-            name=name,
-            price=price,
-            created_by_user_id=created_by_user_id,
-            description=description or None,
-            files='',
-            imgs=''
-        )
-        session.add(project)
-        session.flush()  # get project.id
-        project_dir = f"static/buffer/projects/{project.id}"
-        os.makedirs(project_dir, exist_ok=True)
-        if imgs:
-            imgs_path = f"{project_dir}/project_imgs.zip"
-            with open(imgs_path, "wb") as f:
-                f.write(imgs.read())
-            project.imgs = imgs_path
-        if files:
-            files_path = f"{project_dir}/{project.name}.zip"
-            with open(files_path, "wb") as f:
-                f.write(files.read())
-            project.files = files_path
-        session.commit()
-        return jsonify({'success': 'OK', 'id': project.id})
