@@ -118,7 +118,8 @@ def profile():
         
         if user:
             user.name = form.name.data
-            if img_data := form.img.data.read():
+            img_data = form.img.data.read()
+            if img_data:
                 current_user.img = img_data
 
                 with open(consts.CURRENT_PROFILE_PATH, mode="wb") as curr_img:
