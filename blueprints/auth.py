@@ -114,20 +114,20 @@ def profile():
     
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.id == current_user.id).first()
         
-        if user:
-            user.name = form.name.data
-            img_data = form.img.data.read()
-            if img_data:
-                current_user.img = img_data
+        current_user.about = form.about.data
+        current_user.name = form.name.data
+        
+        img_data = form.img.data.read()
+        if img_data:
+            current_user.img = img_data
 
-                with open(consts.CURRENT_PROFILE_PATH, mode="wb") as curr_img:
-                    curr_img.write(current_user.img)
+            with open(consts.CURRENT_PROFILE_PATH, mode="wb") as curr_img:
+                curr_img.write(current_user.img)
 
-            db_sess.merge(current_user)
-            db_sess.commit()
-            return redirect('/profile')
+        db_sess.merge(current_user)
+        db_sess.commit()
+        return redirect('/profile')
     
     return render_template(**template_params)
 
