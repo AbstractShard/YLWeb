@@ -13,7 +13,7 @@ from blueprints.main import main_bp
 import consts
 
 # Load environment variables
-load_dotenv("static/.env")
+load_dotenv(".env")
 
 # === ВАЖНО: инициализация базы данных должна быть здесь ===
 db_session.global_init("db_related/db/db.db")

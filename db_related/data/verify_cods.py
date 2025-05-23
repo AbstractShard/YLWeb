@@ -16,7 +16,7 @@ from .db_session import SqlAlchemyBase
 
 
 # Load environment variables
-load_dotenv('static/.env')
+load_dotenv('.env')
 
 # Email configuration
 SENDERS = os.getenv("SENDERS")

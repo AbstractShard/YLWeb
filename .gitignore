@@ -1,5 +1,5 @@
 .idea
-static/.env
+.env
 static/buffer
 db_related/db/db.db
 venv

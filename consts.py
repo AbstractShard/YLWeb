@@ -11,7 +11,7 @@ CURRENT_PROFILE_PATH = "static/buffer/profile.png"
 
 PROJECTS_PATH = "static/buffer/projects"
 
-load_dotenv('static/.env')
+load_dotenv('.env')
 
 HCAPTCHA_SITE_KEY = os.getenv('HCAPTCHA_SITE_KEY')
 HCAPTCHA_SECRET_KEY = os.getenv('HCAPTCHA_SECRET_KEY')
