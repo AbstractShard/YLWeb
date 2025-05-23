@@ -9,18 +9,25 @@
             content="width=device-width, initial-scale=1, shrink-to-fit=no"
         />
         <!-- для браузеров -->
-        <meta name="description" content="UltimateUnity — платформа для создания, покупки и продажи проектов. Объединяем разработчиков, предоставляем удобные инструменты и быстрый обмен данными. Присоединяйтесь к сообществу и ультуйте!">
-        <meta name="keywords" content="UltimateUnity, проекты, разработка, покупка, продажа, платформа, сообщество, инструменты, обмен данными, Unity, программирование, IT, стартап, фриланс, marketplace, разработка, дизайн, профили, уведомления, валюта, регистрация, авторизация">
+        <meta
+            name="description"
+            content="UltimateUnity — платформа для создания, покупки и продажи проектов. Объединяем разработчиков, предоставляем удобные инструменты и быстрый обмен данными. Присоединяйтесь к сообществу и ультуйте!"
+        />
+        <meta
+            name="keywords"
+            content="UltimateUnity, проекты, разработка, покупка, продажа, платформа, сообщество, инструменты, обмен данными, Unity, программирование, IT, стартап, фриланс, marketplace, разработка, дизайн, профили, уведомления, валюта, регистрация, авторизация"
+        />
         <meta name="author" content="UltimateUnity Team" />
 
         <!-- для пересылания -->
-        <meta property="og:title" content="UltimateUnity: Создание, покупка и продажа проектов." />
-        <meta property="og:type" content="website" /> <!-- или article, video, profile -->
-        <meta property="og:url" content="https://bruhunity.glitch.me/" />
         <meta
-            property="og:image"
-            content="../static/img/preview.png"
+            property="og:title"
+            content="UltimateUnity: Создание, покупка и продажа проектов."
         />
+        <meta property="og:type" content="website" />
+        <!-- или article, video, profile -->
+        <meta property="og:url" content="https://bruhunity.glitch.me/" />
+        <meta property="og:image" content="../static/img/preview.png" />
         <meta
             property="og:description"
             content="Объединяем разработчиков по всему миру. Присоединяйтесь к сообществу!"
@@ -67,6 +74,22 @@
             href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
             rel="stylesheet"
         />
+
+        <!-- google аналитика -->
+        <!-- Google tag (gtag.js) -->
+        <script
+            async
+            src="https://www.googletagmanager.com/gtag/js?id=G-MLBP42BLRK"
+        ></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag("js", new Date());
+
+            gtag("config", "G-MLBP42BLRK");
+        </script>
 
         <title>{{ title }}</title>
     </head>
