@@ -43,7 +43,22 @@
                         <tr>
                             <td>{{i['Цена']}}</td>
                             <td>{{i['GEFs']}}</td>
-                            <td style="text-align:center"> <button name="button" value="{{i['Цена']}}" onclick="location.href='/buy'" class="btn btn-primary" >Купить</button> </td>
+                            <td style="text-align:center"> <button id="price-{{i['Цена']}}" name="button" value="{{i['Цена']}}" data-href="/buy" class="btn btn-primary">Купить</button> </td>
+                        </tr>
+                        <script>
+                            let buyBtn = document.getElementById("price-{{i['Цена']}}");
+                            buyBtn.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                gtag('event', "GEF's buying", {
+                                    'event_category': 'User Interaction',
+                                    'event_label': 'Buy Button',
+                                    'value': "{{ i['Цена'] }}"
+                                });
+                                setTimeout(function() {
+                                    window.location.href = buyBtn.dataset.href;
+                                }, 300);
+                            });
+                        </script>
                     {% endfor %}
                 {% endif %}
                 </tbody>

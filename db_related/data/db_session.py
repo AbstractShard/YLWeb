@@ -1,3 +1,4 @@
+import consts
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
 
@@ -7,18 +8,27 @@ SqlAlchemyBase = orm.declarative_base()
 factory = None
 
 
-def global_init(db_file_path: str):
+def global_init(db_file_path: str = None):
     global factory
 
     if factory:
         return
 
-    if not db_file_path.strip():
-        raise Exception("Необходимо указать файл базы данных.")
+    # Получаем строку подключения из переменной окружения
+    db_url = consts.DATABASE_URL
+    if db_url:
+        conn_str = db_url
+    else:
+        raise Exception("Нужен PostgreSQL URL")
 
-    conn_str = f"sqlite:///{db_file_path.strip()}?check_same_thread=False"
-
-    engine = sa.create_engine(conn_str, echo=False)
+    engine = sa.create_engine(
+        conn_str,            # Используем URL из переменной окружения
+        echo=False,          # Отключаем вывод SQL-запросов в консоль
+        pool_size=5,         # Максимум 5 одновременных соединений (можно меньше)
+        max_overflow=2,      # Дополнительные соединения при пике нагрузки
+        pool_recycle=1800,   # Пересоздавать соединение каждые 30 минут
+        pool_pre_ping=True   # Проверять соединение перед использованием
+    )
     factory = orm.sessionmaker(bind=engine)
 
     from . import all_modules

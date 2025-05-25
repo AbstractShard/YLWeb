@@ -52,11 +52,28 @@
     <br>
 
     {% if project_btn == "download" or project["price"] == 0 %}
-        <a class="btn btn-success" href="{{ url_for('projects.download_project', name=project['name']) }}">Скачать проект</a>
+        <a class="btn btn-success" id="buy-project" href="{{ url_for('projects.download_project', name=project['name']) }}">Скачать проект</a>
     {% elif project_btn == "login" %}
         <button class="btn btn-warning" onclick="location.href='/login'">Для покупки проектов нужно войти</button>
     {% elif project_btn == "buy" %}
         <form method="post"><button class="btn btn-primary">Купить за {{ project["price"] }}GEF's</button></form>
     {% endif %}
 </div>
+<script>
+  var buyBtn = document.getElementById('buy-project');
+  if (buyBtn) {
+    buyBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      gtag('event', 'Project_downloading', {
+        'event_category': 'User Interaction',
+        'event_label': 'Buy Button',
+        'value': '{{ project["price"] // 2 }}'
+      });
+      setTimeout(function() {
+        window.location.href = buyBtn.href;
+      }, 300);
+    });
+  }
+</script>
+
 {% endblock %}

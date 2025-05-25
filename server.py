@@ -1,7 +1,6 @@
 from flask import Flask, render_template
 from flask_login import LoginManager
 from flask_restful import Api
-from dotenv import load_dotenv
 import os
 
 from db_related.data import db_session
@@ -12,11 +11,8 @@ from blueprints.projects import projects_bp
 from blueprints.main import main_bp
 import consts
 
-# Load environment variables
-load_dotenv(".env")
-
 # === ВАЖНО: инициализация базы данных должна быть здесь ===
-db_session.global_init("db_related/db/db.db")
+db_session.global_init(consts.DATABASE_URL)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -40,7 +36,7 @@ app.register_blueprint(main_bp)
 def bad_request(error):
     return render_template(
         "error.html",
-        title="UltimateUnity",
+        title="400 | UltimateUnity",
         error="400",
         error_img="../static/img/errors/400.jpg",
     )
@@ -50,7 +46,7 @@ def bad_request(error):
 def unauthorized(error):
     return render_template(
         "error.html",
-        title="UltimateUnity",
+        title="401 | UltimateUnity",
         error="401",
         error_img="../static/img/errors/401.jpg",
     )
@@ -60,7 +56,7 @@ def unauthorized(error):
 def forbidden(error):
     return render_template(
         "error.html",
-        title="UltimateUnity",
+        title="403 | UltimateUnity",
         error="403",
         error_img="../static/img/errors/403.jpg",
     )
@@ -70,7 +66,7 @@ def forbidden(error):
 def not_found(error):
     return render_template(
         "error.html",
-        title="UltimateUnity",
+        title="404 | UltimateUnity",
         error="404",
         error_img="../static/img/errors/404.jpg",
     )

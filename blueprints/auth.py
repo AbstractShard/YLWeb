@@ -24,7 +24,7 @@ def register():
     form = RegisterForm()
     template_params = {
         "template_name_or_list": "register.html",
-        "title": "Регистрация",
+        "title": "Регистрация | UU",
         "form": form,
         "HCAPTCHA_SITE_KEY": HCAPTCHA_SITE_KEY,
         "RECAPTCHA_SITE_KEY": RECAPTCHA_SITE_KEY
@@ -72,7 +72,7 @@ def login():
     form = LoginForm()
     template_params = {
         "template_name_or_list": "login.html",
-        "title": "Вход",
+        "title": "Вход | UU",
         "form": form,
         "HCAPTCHA_SITE_KEY": consts.HCAPTCHA_SITE_KEY,
         "RECAPTCHA_SITE_KEY": consts.RECAPTCHA_SITE_KEY
@@ -104,7 +104,7 @@ def profile():
     form = ProfileForm()
     template_params = {
         "template_name_or_list": "profile.html",
-        "title": "Профиль",
+        "title": "Профиль | UU",
         "form": form
     }
 
@@ -140,7 +140,7 @@ def change_password():
 
     template_params = {
         "template_name_or_list": "change_password.html",
-        "title": "Изменить пароль",
+        "title": "Изменить пароль | UU",
         "form": form,
         "RECAPTCHA_SITE_KEY": RECAPTCHA_SITE_KEY
     }
@@ -174,7 +174,7 @@ def forgot_password():
     form = ForgotPasswordForm()
     template_params = {
         "template_name_or_list": "forgot_password.html",
-        "title": "Забыл пароль",
+        "title": "Забыл пароль | UU",
         "form": form,
         "RECAPTCHA_SITE_KEY": RECAPTCHA_SITE_KEY
     }

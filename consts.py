@@ -1,8 +1,7 @@
 from functools import wraps
 import os
 from flask_login import current_user, AnonymousUserMixin
-from db_related.data.projects import Project
-from zipfile import ZipFile, is_zipfile
+from zipfile import is_zipfile
 import requests
 from dotenv import load_dotenv
 
@@ -18,6 +17,7 @@ HCAPTCHA_SECRET_KEY = os.getenv('HCAPTCHA_SECRET_KEY')
 RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY')
 RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY')
 APP_SECRET_KEY = os.getenv('APP_SECRET_KEY')
+DATABASE_URL = os.getenv('DATABASE_URL')
 PROJECT_TYPES = ['Continue', 'Most-liked', 'Recent']
 
 
@@ -97,7 +97,7 @@ def check_zip(data) -> bool:
     return res
 
 
-def project_to_dict(project: Project) -> dict:
+def project_to_dict(project) -> dict:
     imgs = list(map(lambda y: f"../{PROJECTS_PATH}/{project.name}/preview_imgs/{y}",
                     os.listdir(f"{PROJECTS_PATH}/{project.name}/preview_imgs")))
     if not imgs:

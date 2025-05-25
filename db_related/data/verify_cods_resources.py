@@ -39,7 +39,6 @@ class VerifyCodeResource(Resource):
         db_sess.commit()
 
         send_email(args['email'], args['subject'], verify_code_generated)
-        print(verify_code_generated)
         return jsonify({"success": 'OK'})
 
 

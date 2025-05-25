@@ -22,7 +22,7 @@ def add_project():
 
     template_params = {
         "template_name_or_list": "edit_project.html",
-        "title": "Добавление проекта",
+        "title": "Добавление проекта | UU",
         "action": "Добавление",
         "form": form
     }
@@ -92,11 +92,10 @@ def current_projects():
     for proj in projects:
         user_projects.append(project_to_dict(proj))
     
-    print(user_projects)
 
     template_params = {
         "template_name_or_list": "user_projects.html",
-        "title": "Проекты",
+        "title": "Проекты | UU",
         "projects": user_projects
     }
 
@@ -116,7 +115,7 @@ def edit_project(name: str):
         
     template_params = {
         "template_name_or_list": "edit_project.html",
-        "title": "Редактирование проекта",
+        "title": "Редактирование проекта | UU",
         "action": "Редактирование",
         "project": project,
         "form": form
@@ -221,7 +220,7 @@ def project_info(name: str):
         else:
             return render_template(
                 "project_info.html",
-                title=project.name,
+                title=f"{project.name} | UU",
                 project=project_to_dict(project),
                 project_btn=project_btn,
                 message="Недостаточно GEF's"
@@ -229,7 +228,7 @@ def project_info(name: str):
 
     return render_template(
         "project_info.html",
-        title=project.name,
+        title=f"{project.name} | UU",
         project=project_to_dict(project),
         project_btn=project_btn
     )
@@ -249,10 +248,16 @@ def delete_project(name: str):
 
 
 @projects_bp.route("/download/<string:name>")
+@login_required
 @check_buffer
 def download_project(name: str):
     db_sess = db_session.create_session()
     project = db_sess.query(Project).filter(Project.name == name).first()
+
     if not project or not os.path.isfile(project.files):
         abort(404)
+    # Проверяем, что пользователь автор или купил проект
+    user = db_sess.query(User).get(current_user.id)
+    if not (project in user.created_projects or project in user.purchased_projects):
+        abort(403)
     return send_from_directory(os.path.dirname(project.files), os.path.basename(project.files), as_attachment=True)

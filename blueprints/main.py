@@ -59,7 +59,7 @@ def currency():
 
         template_params = {
             "template_name_or_list": "buy.html",
-            "title": "Оплата",
+            "title": "Оплата | UU",
             "price": button_name[:-1]
         }
 
@@ -77,7 +77,7 @@ def currency():
 
     template_params = {
         "template_name_or_list": "currency.html",
-        "title": "Валюта",
+        "title": "Валюта | UU",
         "balance": balance,
         "price": price,
         "transactions": transactions
@@ -101,7 +101,7 @@ def message():
 
     template_params = {
         "template_name_or_list": "message.html",
-        "title": "Уведомления",
+        "title": "Уведомления | UU",
         "messages": reversed(messages),
         "news": news
     }

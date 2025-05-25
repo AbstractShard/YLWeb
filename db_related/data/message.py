@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, LargeBinary, Boolean, Time, DATETIME
 from werkzeug.security import generate_password_hash, check_password_hash
+import datetime
 from flask_login import UserMixin
 
 from .db_session import SqlAlchemyBase
@@ -13,7 +14,7 @@ class Message(SqlAlchemyBase, UserMixin):
 
 
     # Информация о уведомлении
-    data = Column(String, nullable=False)
+    data = Column(DATETIME, nullable=False, default=datetime.datetime.now)
     name = Column(String, nullable=False)
     about = Column(String, nullable=True)
     readability = Column(Boolean, nullable=False)
